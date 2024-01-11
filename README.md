@@ -37,7 +37,7 @@ def set_cookies(response: Response) -> str:
     }
 
     response.set_cookie(
-        key="UserPrivileges",
+        key="UserPermissions",
         value=json.dumps(sample_user_privileges),
         httponly=True,
         max_age=1800,
