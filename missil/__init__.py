@@ -69,7 +69,7 @@ class Permission(FastAPIDependsClass):
         self,
         area: str,
         level: int,
-        cookie_key: str | None,
+        cookie_key: str | None = None,
         use_cache: bool = True,
         custom_bearer: Any | None = None,
     ):
