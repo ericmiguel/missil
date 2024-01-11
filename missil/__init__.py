@@ -22,7 +22,7 @@ WRITE = 1
 DENY = -1
 
 
-class PrivilegeBearer:
+class CookieBearer:
     """
     Read current user privileges com (http-only) Cookies.
 
@@ -60,9 +60,9 @@ class PolicyException(HTTPException):
         super().__init__(status_code=status_code, detail=detail, headers=headers)
 
 
-def get_current_user_privileges(key: str = "UserPrivileges") -> PrivilegeBearer:
+def get_current_user_privileges(key: str = "UserPrivileges") -> CookieBearer:
     "Get a Bearer instance. Just a syntactic sugar."
-    return PrivilegeBearer(key)
+    return CookieBearer(key)
 
 
 class Permission(FastAPIDependsClass):
@@ -72,7 +72,7 @@ class Permission(FastAPIDependsClass):
         self,
         area: str,
         level: int,
-        policy_bearer: PrivilegeBearer | None = None,
+        policy_bearer: CookieBearer | None = None,
         use_cache: bool = True,
     ):
         """
