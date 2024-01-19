@@ -1,13 +1,13 @@
 [project]
 name = "missil"
-version = "0.1.1"
+version = "0.1.3"
 description = "Simple FastAPI declarative endpoint-level access control."
 authors = [
     {name = "Eric Miguel", email = "eric.mrib@gmail.com"},
 ]
 dependencies = [
     "fastapi>=0.104.1",
-    "pydantic>=2.5.0",
+    "python-jose[cryptography]>=3.3.0",
 ]
 requires-python = ">=3.10"
 readme = "README.md"
@@ -75,6 +75,9 @@ python-tools = [
 testing = ["pytest>=7.4.0", "pytest-cov>=4.1.0", "pytest-cookies>=0.7.0"]
 local-run = [
     "uvicorn>=0.23.2",
+]
+dev = [
+    "uvicorn>=0.26.0",
 ]
 
 [tool.pdm.scripts]
