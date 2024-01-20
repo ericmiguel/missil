@@ -2,9 +2,7 @@
 name = "missil"
 version = "0.1.3"
 description = "Simple FastAPI declarative endpoint-level access control."
-authors = [
-    {name = "Eric Miguel", email = "eric.mrib@gmail.com"},
-]
+authors = [{ name = "Eric Miguel", email = "eric.mrib@gmail.com" }]
 classifiers = [
     "Intended Audience :: Information Technology",
     "Intended Audience :: System Administrators",
@@ -32,13 +30,10 @@ classifiers = [
     "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
     "Topic :: Internet :: WWW/HTTP",
 ]
-dependencies = [
-    "fastapi>=0.104.1",
-    "python-jose[cryptography]>=3.3.0",
-]
+dependencies = ["fastapi>=0.104.1", "python-jose[cryptography]>=3.3.0"]
 requires-python = ">=3.10"
 readme = "README.md"
-license = {text = "MIT"}
+license = { text = "MIT" }
 
 [tool.mypy]
 check_untyped_defs = true
@@ -100,17 +95,14 @@ python-tools = [
     "pre-commit>=3.4.0",
 ]
 testing = ["pytest>=7.4.0", "pytest-cov>=4.1.0", "pytest-cookies>=0.7.0"]
-dev = [
-    "uvicorn>=0.26.0",
-]
+dev = ["uvicorn>=0.26.0"]
 docs = [
     "griffe-typingdoc>=0.2.4",
-]
-mkdocs = [
     "mkdocs-material>=9.5.4",
     "mkdocstrings[python]>=0.24.0",
+    "mkdocs>=1.5.3",
+    "termynal>=0.11.1",
 ]
-termynal = []
 
 [tool.pdm.scripts]
 autoflake = { cmd = [
