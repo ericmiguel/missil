@@ -1,19 +1,45 @@
 # Missil
 
-Simple FastAPI declarative endpoint-level access control.
-
-Scopes did not meet my needs and other permission systems were too complex, so
-I designed this code for my and my team needs, but feel free to use it if you like.
-
-A very humble example:
+Simple [FastAPI]("https://fastapi.tiangolo.com/") declarative endpoint-level access control, somewhat inspired by [Pyramid]("https://docs.pylonsproject.org/projects/pyramid/en/latest/narr/security.html").
 
 ```python
+@app.get("/", dependencies=[rules["finances:read"]])
+def read_root():
+    return {"Hello": "World"}
+```
+
+---
+
+**Documentation**: <a href="https://ericmiguel.github.io/missil/" target="_blank">https://ericmiguel.github.io/missil</a>
+
+**Source Code**: <a href="https://github.com/ericmiguel/missil" target="_blank">https://github.com/ericmiguel/missil</a>
+
+---
+
+## Installation
+
+```bash
+pip install missil
+
+```
+
+## Why use Missil?
+
+For most applications the use of [scopes]("https://fastapi.tiangolo.com/advanced/security/oauth2-scopes/?h=oauth2") to determine the rights of a user is sufficient enough. Nonetheless, scopes are tied to the state of the user, while 'missil' also take the state of the requested resource into account.
+
+Let's take an scientific paper as an example: depending on the state of the submission process (like "draft", "submitted", "peer review" or "published") different users should have different permissions on viewing and editing. This could be acomplished with custom code in the path definition functions, but Missil offers a very legible and to-the-point to define these constraints.
+
+
+## Quick usage
+
+
+```python
+
 import missil
 
 from fastapi import FastAPI
 from fastapi import Response
 
-from typing import Union
 from datetime import datetime
 from datetime import timezone
 from datetime import timedelta
@@ -26,7 +52,7 @@ SECRET_KEY = "2ef9451be5d149ceaf5be306b5aa03b41a0331218926e12329c5eeba60ed5cf0"
 bearer = missil.FlexibleTokenBearer(TOKEN_KEY, SECRET_KEY)
 rules = missil.make_rules(bearer, "finances", "it", "other")
 
-@app.get("/")
+@app.get("/", dependencies=[rules["finances:read"]])
 def read_root():
     return {"Hello": "World"}
 
@@ -49,9 +75,14 @@ def set_cookies(response: Response) -> None:
         max_age=1800,
         expires=1800,
     )
-
-
-@app.get("/items/{item_id}", dependencies=[rules["finances:read"]])
-def read_item(item_id: int, q: Union[str, None] = None):
-    return {"item_id": item_id, "q": q}
 ```
+
+
+## Disclaimer 
+
+Scopes did not meet my needs and other permission systems were too complex, so
+I designed this code for my and my team needs, but feel free to use it if you like.
+
+## License
+
+This project is licensed under the terms of the MIT license.
