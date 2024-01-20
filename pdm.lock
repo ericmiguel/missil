@@ -5,7 +5,7 @@
 groups = ["default", "python-tools", "dev", "mkdocs", "docs"]
 strategy = ["cross_platform"]
 lock_version = "4.4.1"
-content_hash = "sha256:ab57b38841380f5fdffa144267c3e94c0d327c253509479898b3b790943c00d8"
+content_hash = "sha256:044a2ae6497e1a0ca88382b0a2628da2038920713f4e78f92b0e1e2f7d70c160"
 
 [[package]]
 name = "annotated-types"
@@ -1158,19 +1158,6 @@ dependencies = [
 files = [
     {file = "starlette-0.35.1-py3-none-any.whl", hash = "sha256:50bbbda9baa098e361f398fda0928062abbaf1f54f4fadcbe17c092a01eb9a25"},
     {file = "starlette-0.35.1.tar.gz", hash = "sha256:3e2639dac3520e4f58734ed22553f950d3f3cb1001cd2eaac4d57e8cdc5f66bc"},
-]
-
-[[package]]
-name = "termynal"
-version = "0.11.1"
-requires_python = ">=3.8.1,<4.0.0"
-summary = "A lightweight and modern animated terminal window"
-dependencies = [
-    "markdown",
-]
-files = [
-    {file = "termynal-0.11.1-py3-none-any.whl", hash = "sha256:553fc58b126a0482b71a442263d33a9b47fb69868a7fdd6cc36dc9f006aab7a2"},
-    {file = "termynal-0.11.1.tar.gz", hash = "sha256:ce70d264a649d26365bf72b8cfc5aa2bf903adafebc1027347343779a8695ff0"},
 ]
 
 [[package]]

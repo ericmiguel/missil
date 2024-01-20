@@ -5,6 +5,33 @@ description = "Simple FastAPI declarative endpoint-level access control."
 authors = [
     {name = "Eric Miguel", email = "eric.mrib@gmail.com"},
 ]
+classifiers = [
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: System Administrators",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python",
+    "Topic :: Internet",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development",
+    "Typing :: Typed",
+    "Development Status :: 4 - Beta",
+    "Environment :: Web Environment",
+    "Framework :: AsyncIO",
+    "Framework :: FastAPI",
+    "Framework :: Pydantic",
+    "Framework :: Pydantic :: 1",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+    "Topic :: Internet :: WWW/HTTP",
+]
 dependencies = [
     "fastapi>=0.104.1",
     "python-jose[cryptography]>=3.3.0",
@@ -73,11 +100,15 @@ python-tools = [
     "pre-commit>=3.4.0",
 ]
 testing = ["pytest>=7.4.0", "pytest-cov>=4.1.0", "pytest-cookies>=0.7.0"]
-local-run = [
-    "uvicorn>=0.23.2",
-]
 dev = [
     "uvicorn>=0.26.0",
+]
+docs = [
+    "griffe-typingdoc>=0.2.4",
+]
+mkdocs = [
+    "mkdocs-material>=9.5.4",
+    "mkdocstrings[python]>=0.24.0",
 ]
 
 [tool.pdm.scripts]
