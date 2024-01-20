@@ -1,0 +1,121 @@
+[project]
+name = "missil"
+version = "0.1.3"
+description = "Simple FastAPI declarative endpoint-level access control."
+authors = [
+    {name = "Eric Miguel", email = "eric.mrib@gmail.com"},
+]
+dependencies = [
+    "fastapi>=0.104.1",
+    "python-jose[cryptography]>=3.3.0",
+]
+requires-python = ">=3.10"
+readme = "README.md"
+license = {text = "MIT"}
+
+[tool.mypy]
+check_untyped_defs = true
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+show_error_codes = true
+warn_return_any = true
+
+[[tool.mypy.overrides]]
+module = []
+ignore_missing_imports = true
+
+[tool.isort]
+profile = "black"
+force_single_line = true
+atomic = true
+include_trailing_comma = true
+lines_after_imports = 2
+lines_between_types = 1
+use_parentheses = true
+filter_files = true
+
+[tool.flake8]
+max-line-length = 88
+max-complexity = 10
+exclude = [
+    ".venv",
+    ".git",
+    "__pycache__",
+    "*.egg-info",
+    ".pytest_cache",
+    ".mypy_cache",
+]
+ignore = [ # alertas e erros por conta do black
+    "E501", # linha longa
+    "E203", # espaço antes de ':'
+    "E225", # sem espaço ao redor de operadores 
+    "W503", # quebra de linha antes de um operador binário
+    "W504", # quebra de linha após um operador binário line
+]
+
+[tool.pydocstyle]
+convention = "numpy"
+add-ignore = "D401"
+match = '(?!test_|tests).*\.py' # ignora arquivos python contendo "test_" ou "tests"
+match-dir = "[^\tests|.].*"     # ignora diretórios iniciados com "." ou "tests"[build-system]
+
+
+[tool.pdm.dev-dependencies]
+python-tools = [
+    "mypy>=1.4.1",
+    "isort>=5.12.0",
+    "black>=23.11.0",
+    "pydocstyle>=6.3.0",
+    "autoflake>=2.2.0",
+    "Flake8-pyproject>=1.2.3",
+    "pyupgrade>=3.10.1",
+    "refurb>=1.18.0",
+    "pre-commit>=3.4.0",
+]
+testing = ["pytest>=7.4.0", "pytest-cov>=4.1.0", "pytest-cookies>=0.7.0"]
+local-run = [
+    "uvicorn>=0.23.2",
+]
+dev = [
+    "uvicorn>=0.26.0",
+]
+
+[tool.pdm.scripts]
+autoflake = { cmd = [
+    "autoflake",
+    "--remove-all-unused-imports",
+    "--recursive",
+    "--remove-unused-variables",
+    "--in-place",
+    "missil",
+    "tests",
+] }
+
+
+black = { cmd = ["black", "missil", "tests"] }
+isort = { cmd = ["isort", "missil", "tests"] }
+mypy = { cmd = ["mypy", "missil"] }
+refurb = { cmd = ["refurb", "missil", "tests"] }
+pyupgrade = { cmd = [
+    "pyupgrade",
+    "--py36-plus",
+    "--py37-plus",
+    "--py38-plus",
+    "--py39-plus",
+    "--py310-plus",
+] }
+pydocstyle = { cmd = ["pydocstyle", "missil"] }
+upgrade-syntax = { composite = ["pyupgrade", "refurb"] }
+format = { composite = ["autoflake", "black", "isort"] }
+test = { cmd = ["pytest"] }
+code-quality = { composite = [
+    "upgrade-syntax",
+    "format",
+    "mypy",
+    "pydocstyle",
+    "test",
+] }
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
