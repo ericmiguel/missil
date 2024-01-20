@@ -18,7 +18,6 @@ from datetime import datetime
 from typing import Annotated
 from typing import Any
 
-
 from fastapi import Depends as FastAPIDependsFunc
 from fastapi import HTTPException
 from fastapi import Request
@@ -160,7 +159,7 @@ class TokenBearer:
                     (
                         "User permissions not found at token key "
                         f"'{self.user_permissions_key}'"
-                    )
+                    ),
                 )
 
         return decoded_token
