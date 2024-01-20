@@ -2,10 +2,10 @@
 # It is not intended for manual editing.
 
 [metadata]
-groups = ["default", "python-tools", "dev", "mkdocs", "docs"]
+groups = ["default", "python-tools", "dev", "mkdocs", "docs", "termynal"]
 strategy = ["cross_platform"]
 lock_version = "4.4.1"
-content_hash = "sha256:044a2ae6497e1a0ca88382b0a2628da2038920713f4e78f92b0e1e2f7d70c160"
+content_hash = "sha256:7aa615d28b5d65fee47493f29b824b8b19d40f4f24afcf00dcd6be5232412f33"
 
 [[package]]
 name = "annotated-types"

@@ -110,6 +110,7 @@ mkdocs = [
     "mkdocs-material>=9.5.4",
     "mkdocstrings[python]>=0.24.0",
 ]
+termynal = []
 
 [tool.pdm.scripts]
 autoflake = { cmd = [
