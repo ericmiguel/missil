@@ -10,6 +10,7 @@ on:
             - main
         paths-ignore:
             - .gitignore
+            - .github/**
             - .pre-commit-config.yaml
             - README.md
             - docs
