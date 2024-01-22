@@ -1,6 +1,4 @@
-"""
-Simple FastAPI declarative endpoint-level access control.
-"""
+"""Simple FastAPI declarative endpoint-level access control."""
 
 from typing import Annotated
 

@@ -1,6 +1,4 @@
-"""
-JWT token utilities.
-"""
+"""JWT token utilities."""
 
 from datetime import datetime
 from typing import Any

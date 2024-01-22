@@ -1,6 +1,4 @@
-"""
-JWT token obtaining via dependency injection.
-"""
+"""JWT token obtaining via dependency injection."""
 
 from typing import Any
 
@@ -94,7 +92,6 @@ class TokenBearer:
 
     def decode_jwt(self, token: str) -> dict[str, int]:
         """Decode a retrieved token value and return the user permissions."""
-
         decoded_token = decode_jwt_token(
             token, self.token_secret_key, algorithm=self.algorithm
         )
@@ -122,16 +119,16 @@ class CookieTokenBearer(TokenBearer):
     """Read JWT token from http cookies."""
 
     async def __call__(self, request: Request) -> dict[str, Any]:
-        """FastAPI FastAPIDependsFunc will call this method."""
+        """Fastapi FastAPIDependsFunc will call this method."""
         token = self.get_token_from_cookies(request)
         return self.decode_jwt(token)
 
 
 class HTTPTokenBearer(TokenBearer):
-    """Read JWT token from the request header"""
+    """Read JWT token from the request header."""
 
     async def __call__(self, request: Request) -> dict[str, Any]:
-        """FastAPI FastAPIDependsFunc will call this method."""
+        """Fastapi FastAPIDependsFunc will call this method."""
         token = self.get_token_from_header(request)
         return self.decode_jwt(token)
 
@@ -140,7 +137,7 @@ class FlexibleTokenBearer(TokenBearer):
     """Tries to read the token from the cookies or from request headers."""
 
     async def __call__(self, request: Request) -> dict[str, Any]:
-        """FastAPI FastAPIDependsFunc will call this method."""
+        """Fastapi FastAPIDependsFunc will call this method."""
         try:
             token = self.get_token_from_cookies(request)
         except TokenErrorException:
