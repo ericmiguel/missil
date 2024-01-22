@@ -13,13 +13,11 @@ User permmissions declaration used by Missil follows the schema:
     'business area name 2': WRITE
 }
 """
-
 from datetime import datetime
 from typing import Annotated
 from typing import Any
 
 from fastapi import Depends as FastAPIDependsFunc
-from fastapi import HTTPException
 from fastapi import Request
 from fastapi import status
 from fastapi.params import Depends as FastAPIDependsClass
@@ -28,38 +26,13 @@ from jose import JWTError
 from jose import jwt
 from jose.exceptions import JWTClaimsError
 
+from missil.exceptions import PermissionErrorException
+from missil.exceptions import TokenErrorException
+
 
 READ = 0
 WRITE = 1
 DENY = -1
-
-
-class PermissionError(HTTPException):
-    """
-    An HTTP exception you can raise in your own code to show errors to the client.
-
-    Mainly for client errors, invalid authentication, invalid data, etc.
-    """
-
-    def __init__(
-        self,
-        status_code: int,
-        detail: str,
-        headers: dict[str, str] | None = {"WWW-Authenticate": "Bearer"},
-    ) -> None:
-        super().__init__(status_code=status_code, detail=detail, headers=headers)
-
-
-class TokenError(HTTPException):
-    """HTTP Exception you can raise to show on JWT token-related errors."""
-
-    def __init__(
-        self,
-        status_code: int,
-        detail: str,
-        headers: dict[str, str] | None = {"WWW-Authenticate": "Bearer"},
-    ) -> None:
-        super().__init__(status_code=status_code, detail=detail, headers=headers)
 
 
 class TokenBearer:
@@ -110,7 +83,7 @@ class TokenBearer:
         token = request.cookies.get(self.token_key)
 
         if not token:
-            raise TokenError(
+            raise TokenErrorException(
                 status.HTTP_403_FORBIDDEN,
                 f"Token not found on request cookies using key '{self.token_key}'",
             )
@@ -122,7 +95,7 @@ class TokenBearer:
         token = request.headers.get(self.token_key)
 
         if not token:
-            raise TokenError(
+            raise TokenErrorException(
                 status.HTTP_403_FORBIDDEN,
                 f"Token not found on request headers using key '{self.token_key}'",
             )
@@ -136,25 +109,27 @@ class TokenBearer:
                 token, self.token_secret_key, algorithms=self.algorithm
             )
         except ExpiredSignatureError:
-            raise TokenError(
+            raise TokenErrorException(
                 status.HTTP_403_FORBIDDEN, "The token signature has expired."
             )
         except JWTClaimsError:
-            raise TokenError(
+            raise TokenErrorException(
                 status.HTTP_403_FORBIDDEN, detail="The token claim is invalid."
             )
         except JWTError:  # generalist exception handler
-            raise TokenError(
+            raise TokenErrorException(
                 status.HTTP_403_FORBIDDEN, "The token signature is invalid."
             )
         except Exception:  # even more generalist exception handler
-            raise TokenError(status.HTTP_403_FORBIDDEN, "The token is invalid.")
+            raise TokenErrorException(
+                status.HTTP_403_FORBIDDEN, "The token is invalid."
+            )
 
         if self.user_permissions_key:
             try:
                 return decoded_token[self.user_permissions_key]
             except KeyError:
-                raise TokenError(
+                raise TokenErrorException(
                     401,
                     (
                         "User permissions not found at token key "
@@ -193,10 +168,12 @@ class FlexibleTokenBearer(TokenBearer):
         """FastAPI FastAPIDependsFunc will call this method."""
         try:
             token = self.get_token_from_cookies(request)
-        except TokenError:
+        except TokenErrorException:
             token = self.get_token_from_header(request)
         except Exception:
-            raise TokenError(status.HTTP_417_EXPECTATION_FAILED, "Token not found.")
+            raise TokenErrorException(
+                status.HTTP_417_EXPECTATION_FAILED, "Token not found."
+            )
 
         return self.decode_jwt(token)
 
@@ -238,12 +215,12 @@ class Rule(FastAPIDependsClass):
             claims: Annotated[dict[str, int], FastAPIDependsFunc(self.bearer)]
         ):
             if not self.area in claims:
-                raise PermissionError(
+                raise PermissionErrorException(
                     status.HTTP_403_FORBIDDEN, f"'{self.area}' not in user permissions."
                 )
 
             if not claims[self.area] >= self.level:
-                raise PermissionError(
+                raise PermissionErrorException(
                     status.HTTP_403_FORBIDDEN,
                     "insufficient access level: "
                     f"({claims[self.area]}/{self.level}) on {self.area}.",
@@ -326,8 +303,8 @@ def make_rules(bearer: TokenBearer, *areas) -> dict[str, Rule]:
 
 
 __all__ = [
-    "PermissionError",
-    "TokenError",
+    "PermissionErrorException",
+    "TokenErrorException",
     "TokenBearer",
     "CookieTokenBearer",
     "HTTPTokenBearer",
