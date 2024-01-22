@@ -4,8 +4,8 @@ Missil custom exceptions.
 
 ## Permission Error Exception
 
-::: missil.PermissionError
+::: missil.PermissionErrorException
 
 ## Token Error Exception
 
-::: missil.TokenError
+::: missil.TokenErrorException
