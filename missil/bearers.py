@@ -2,12 +2,9 @@ from typing import Any
 
 from fastapi import Request
 from fastapi import status
-from jose import ExpiredSignatureError
-from jose import JWTError
-from jose import jwt
-from jose.exceptions import JWTClaimsError
 
 from missil.exceptions import TokenErrorException
+from missil.jwt_utilities import decode_jwt_token
 
 
 class TokenBearer:
@@ -79,26 +76,10 @@ class TokenBearer:
 
     def decode_jwt(self, token: str) -> dict[str, int]:
         """Decode the retrieved token value and return the user permissions."""
-        try:
-            decoded_token = jwt.decode(
-                token, self.token_secret_key, algorithms=self.algorithm
-            )
-        except ExpiredSignatureError:
-            raise TokenErrorException(
-                status.HTTP_403_FORBIDDEN, "The token signature has expired."
-            )
-        except JWTClaimsError:
-            raise TokenErrorException(
-                status.HTTP_403_FORBIDDEN, detail="The token claim is invalid."
-            )
-        except JWTError:  # generalist exception handler
-            raise TokenErrorException(
-                status.HTTP_403_FORBIDDEN, "The token signature is invalid."
-            )
-        except Exception:  # even more generalist exception handler
-            raise TokenErrorException(
-                status.HTTP_403_FORBIDDEN, "The token is invalid."
-            )
+
+        decoded_token = decode_jwt_token(
+            token, self.token_secret_key, algorithm=self.algorithm
+        )
 
         if self.user_permissions_key:
             try:

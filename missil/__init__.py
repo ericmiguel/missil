@@ -13,14 +13,11 @@ User permmissions declaration used by Missil follows the schema:
     'business area name 2': WRITE
 }
 """
-from datetime import datetime
 from typing import Annotated
-from typing import Any
 
 from fastapi import Depends as FastAPIDependsFunc
 from fastapi import status
 from fastapi.params import Depends as FastAPIDependsClass
-from jose import jwt
 
 from missil.bearers import CookieTokenBearer
 from missil.bearers import FlexibleTokenBearer
@@ -28,6 +25,8 @@ from missil.bearers import HTTPTokenBearer
 from missil.bearers import TokenBearer
 from missil.exceptions import PermissionErrorException
 from missil.exceptions import TokenErrorException
+from missil.jwt_utilities import decode_jwt_token
+from missil.jwt_utilities import make_jwt_token
 
 
 READ = 0
@@ -86,33 +85,6 @@ class Rule(FastAPIDependsClass):
         return check_user_permissions
 
 
-def make_jwt_token(
-    claims: dict[str, Any], secret: str, exp: datetime, algorithm: str = "HS256"
-) -> str:
-    """
-    Create a JWT token.
-
-    Parameters
-    ----------
-    claims : dict[str, Any]
-        Token data.
-    secret : str
-        Secret key to sign the token.
-    exp : datetime
-        Token expiration datetime.
-    algorithm : str, optional
-        Encode algorithm, by default "HS256"
-
-    Returns
-    -------
-    str
-        Encoded JWT token.
-    """
-    to_encode = claims.copy()
-    to_encode.update({"exp": exp})
-    return jwt.encode(to_encode, key=secret, algorithm=algorithm)
-
-
 def make_rules(bearer: TokenBearer, *areas) -> dict[str, Rule]:
     """
     Create a missil rule set.
@@ -163,6 +135,8 @@ __all__ = [
     "PermissionErrorException",
     "TokenErrorException",
     "TokenBearer",
+    "make_jwt_token",
+    "decode_jwt_token",
     "CookieTokenBearer",
     "HTTPTokenBearer",
     "FlexibleTokenBearer",
