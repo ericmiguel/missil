@@ -1,18 +1,7 @@
 """
 Simple FastAPI declarative endpoint-level access control.
-
-Scopes did not meet needs and other permission systems were too complex, so I designed
-this code for my and my team needs, but feel free to use it if you like.
-
-User permmissions declaration used by Missil follows the schema:
-
-{
-    'business area name': READ,
-    'business area name': WRITE,
-    'business area name 2': READ
-    'business area name 2': WRITE
-}
 """
+
 from typing import Annotated
 
 from fastapi import Depends as FastAPIDependsFunc
@@ -35,7 +24,7 @@ DENY = -1
 
 
 class Rule(FastAPIDependsClass):
-    """FastAPI dependency to set endpoint-level access rules."""
+    """FastAPI dependency to set and endpoint-level access rule."""
 
     def __init__(
         self,
@@ -45,18 +34,22 @@ class Rule(FastAPIDependsClass):
         use_cache: bool = True,
     ):
         """
-        Set an area and access level to deny or allow user access to and endpoint.
+        Grant or deny user access to an endpoint.
+
+        Access is granted through the verification of the business area and
+        verification of the access level expressed in the jwt token captured by
+        the declared TokenBearer object.
 
         Parameters
         ----------
         area : str
-            business area name like 'financial' or 'human resources'.
+            Business area name like 'financial' or 'human resources'.
         level : int
-            access level, like 'read', 'write', etc.
+            Access level: READ = 0 / WRITE = 1.
         bearer : TokenBearer
-            JWT token source source.
+            JWT token source source. See Bearers module.
         use_cache : bool, optional
-            FastAPI Depends class parameter, by default True
+            FastAPI Depends class parameter, by default True.
         """
         self.area = area
         self.level = level
@@ -70,6 +63,35 @@ class Rule(FastAPIDependsClass):
         def check_user_permissions(
             claims: Annotated[dict[str, int], FastAPIDependsFunc(self.bearer)]
         ):
+            """
+            Run JWT claims against an declared endpoint rule.
+
+            If claims contains the asked business area and sufficient access level,
+            the endpoint access is granted to the user.
+
+            Parameters
+            ----------
+            claims : Annotated[dict[str, int], FastAPIDependsFunc
+                Content decoded from a JWT Token, obtained after FastAPI resolves
+                the TokenBearer dependency. Missil expects an dict using the
+                following structure:
+
+                ```python
+                {
+                    'business area name': READ,
+                    'business area name': WRITE,
+                    'business area name 2': READ
+                    'business area name 2': WRITE
+                }
+                ```
+
+            Raises
+            ------
+            PermissionErrorException
+                Business area not listed on claims.
+            PermissionErrorException
+                Insufficient access level.
+            """
             if self.area not in claims:
                 raise PermissionErrorException(
                     status.HTTP_403_FORBIDDEN, f"'{self.area}' not in user permissions."
@@ -87,40 +109,42 @@ class Rule(FastAPIDependsClass):
 
 def make_rules(bearer: TokenBearer, *areas) -> dict[str, Rule]:
     """
-    Create a missil rule set.
+    Create a Missil ruleset, conveniently.
 
-    A rule set is a simple dict[str, Rule] object. Each area will add a key to
-    give a 'read' access and a second key to give 'write' access.
+    A ruleset is a simple dict bearing endpoint-appliable rules (dict[str, Rule].
 
-    This way, if you give a token source (TokenBearer subclass) and some business
+    Given a token source (see Bearers module) and some business
     area names, like "it", "finances", "hr", this function will return something
     lile the following:
 
-    rules = {
+    ```python
+    {
         'it:read': Rule,
         'it:write': Rule,
         'finances:read': Rule
         ...
     }
+    ```
 
-    So one can pass like a FastAPI dependency like
+    So, one can pass like a FastAPI dependency like:
 
+    ```python
     @app.get("/items/{item_id}", dependencies=[rules["finances:read"]])
     def read_item(item_id: int, q: Union[str, None] = None):
         ...
+    ```
 
-
-    See the sample API in this repo to a working usage example.
+    See the sample API (sample/main.py) to a working usage example.
 
     Parameters
     ----------
     bearer : TokenBearer
-        _description_
+        JWT token source source. See Bearers module.
 
     Returns
     -------
     dict[str, Rule]
-        _description_
+        Dict containing endpoint-appliable rules.
     """
     rules = {}
     for level in [READ, WRITE]:
