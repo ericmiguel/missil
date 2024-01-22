@@ -2,7 +2,7 @@
 # It is not intended for manual editing.
 
 [metadata]
-groups = ["default", "python-tools", "dev", "mkdocs", "docs", "termynal", "autoflake"]
+groups = ["default", "python-tools", "dev", "docs"]
 strategy = ["cross_platform"]
 lock_version = "4.4.1"
 content_hash = "sha256:5768afc777cc6fe79fa8db68fd1a18099675cb99fa05b857bad48ea16014b304"
