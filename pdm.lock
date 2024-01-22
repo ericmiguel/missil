@@ -5,7 +5,7 @@
 groups = ["default", "python-tools", "dev", "docs"]
 strategy = ["cross_platform"]
 lock_version = "4.4.1"
-content_hash = "sha256:5768afc777cc6fe79fa8db68fd1a18099675cb99fa05b857bad48ea16014b304"
+content_hash = "sha256:0474853ad89482cb5a88c7359fba27cb5be35d77564499f553553b3513a22fbd"
 
 [[package]]
 name = "annotated-types"
@@ -1191,6 +1191,29 @@ summary = "A lil' TOML parser"
 files = [
     {file = "tomli-2.0.1-py3-none-any.whl", hash = "sha256:939de3e7a6161af0c887ef91b7d41a53e7c5a1ca976325f429cb46ea9bc30ecc"},
     {file = "tomli-2.0.1.tar.gz", hash = "sha256:de526c12914f0c550d15924c62d72abc48d6fe7364aa87328337a31007fe8a4f"},
+]
+
+[[package]]
+name = "types-pyasn1"
+version = "0.5.0.20240106"
+requires_python = ">=3.8"
+summary = "Typing stubs for pyasn1"
+files = [
+    {file = "types-pyasn1-0.5.0.20240106.tar.gz", hash = "sha256:80e38befb1ddbf90c58b6f9e5ce158df66c42c87764a6564b1b7b6dd340535f7"},
+    {file = "types_pyasn1-0.5.0.20240106-py3-none-any.whl", hash = "sha256:e6ad48f5a58afb32019cba86a0529cdd52c315495a19122b4823ba4ad5f3c45b"},
+]
+
+[[package]]
+name = "types-python-jose"
+version = "3.3.4.20240106"
+requires_python = ">=3.8"
+summary = "Typing stubs for python-jose"
+dependencies = [
+    "types-pyasn1",
+]
+files = [
+    {file = "types-python-jose-3.3.4.20240106.tar.gz", hash = "sha256:b18cf8c5080bbfe1ef7c3b707986435d9efca3e90889acb6a06f65e06bc3405a"},
+    {file = "types_python_jose-3.3.4.20240106-py3-none-any.whl", hash = "sha256:b515a6c0c61f5e2a53bc93e3a2b024cbd42563e2e19cbde9fd1c2cc2cfe77ccc"},
 ]
 
 [[package]]

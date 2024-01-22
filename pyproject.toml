@@ -98,7 +98,10 @@ python-tools = [
     "pre-commit>=3.4.0",
 ]
 testing = ["pytest>=7.4.0", "pytest-cov>=4.1.0", "pytest-cookies>=0.7.0"]
-dev = ["uvicorn>=0.26.0"]
+dev = [
+    "uvicorn>=0.26.0",
+    "types-python-jose>=3.3.4.20240106",
+]
 docs = [
     "griffe-typingdoc>=0.2.4",
     "mkdocs-material>=9.5.4",
