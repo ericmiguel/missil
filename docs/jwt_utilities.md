@@ -4,4 +4,4 @@ Missil uses the excellent [Python-jose](https://github.com/mpdavis/python-jose) 
 
 ## Make JWT Token
 
-::: missil.make_jwt_token
+::: missil.encode_jwt_token

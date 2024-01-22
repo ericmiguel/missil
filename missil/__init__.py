@@ -26,7 +26,7 @@ from missil.bearers import TokenBearer
 from missil.exceptions import PermissionErrorException
 from missil.exceptions import TokenErrorException
 from missil.jwt_utilities import decode_jwt_token
-from missil.jwt_utilities import make_jwt_token
+from missil.jwt_utilities import encode_jwt_token
 
 
 READ = 0
@@ -135,7 +135,7 @@ __all__ = [
     "PermissionErrorException",
     "TokenErrorException",
     "TokenBearer",
-    "make_jwt_token",
+    "encode_jwt_token",
     "decode_jwt_token",
     "CookieTokenBearer",
     "HTTPTokenBearer",
