@@ -70,7 +70,7 @@ class Rule(FastAPIDependsClass):
         def check_user_permissions(
             claims: Annotated[dict[str, int], FastAPIDependsFunc(self.bearer)]
         ):
-            if not self.area in claims:
+            if self.area not in claims:
                 raise PermissionErrorException(
                     status.HTTP_403_FORBIDDEN, f"'{self.area}' not in user permissions."
                 )
