@@ -41,7 +41,7 @@ def set_cookies(response: Response) -> str:
     }
 
     token_expiration = datetime.now(timezone.utc) + timedelta(hours=8)
-    token = missil.make_jwt_token(claims, SECRET_KEY, token_expiration)
+    token = missil.encode_jwt_token(claims, SECRET_KEY, token_expiration)
 
     response.set_cookie(
         key=TOKEN_KEY,

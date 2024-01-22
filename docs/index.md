@@ -1,6 +1,23 @@
-# Missil
+<p align="center">
+  <a href="https://ericmiguel.github.io/missil"><img src="https://github.com/ericmiguel/missil/assets/12076399/c7841626-706e-425f-99d6-c91fd6fb3455" alt="Missil"></a>
+</p>
+<p align="center">
+    <em>Simple <a href="https://fastapi.tiangolo.com/">FastAPI</a> declarative endpoint-level access control, somewhat inspired by <a href="https://docs.pylonsproject.org/projects/pyramid/en/latest/narr/security.html">Pyramid</a>.</em>
+</p>
+<p align="center">
+    <span><a href="https://ericmiguel.github.io/missil/" target="_blank">[DOCS]</a></span>
+    <span><a href="https://github.com/ericmiguel/missil" target="_blank">[SOURCE]</a></span>
+</p>
+<p align="center">
+<a href="https://pypi.org/project/missil" target="_blank">
+    <img src="https://img.shields.io/pypi/v/fastapi?color=%2334D058&label=pypi%20package" alt="Package version">
+</a>
+<a href="https://pypi.org/project/missil" target="_blank">
+    <img src="https://img.shields.io/pypi/pyversions/missil.svg?color=%2334D058" alt="Supported Python versions">
+</a>
+</p>
 
-Simple [FastAPI]("https://fastapi.tiangolo.com/") declarative endpoint-level access control, somewhat inspired by [Pyramid]("https://docs.pylonsproject.org/projects/pyramid/en/latest/narr/security.html").
+
 
 ```python
 @app.get("/", dependencies=[rules["finances:read"]])
@@ -61,7 +78,7 @@ def set_cookies(response: Response) -> None:
     }
 
     token_expiration = datetime.now(timezone.utc) + timedelta(hours=8)
-    token = missil.make_jwt_token(sample_user_privileges, SECRET_KEY, token_expiration)
+    token = missil.encode_jwt_token(sample_user_privileges, SECRET_KEY, token_expiration)
 
     response.set_cookie(
         key=TOKEN_KEY,
