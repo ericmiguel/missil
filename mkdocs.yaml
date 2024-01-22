@@ -1,0 +1,89 @@
+site_name: Missil
+site_url: https://ericmiguel.github.io/missil
+site_description: Simple FastAPI declarative endpoint-level access control.
+copyright: Copyright &copy; 2024 Eric Miguel
+
+theme:
+    name: material
+    palette:
+        - media: "(prefers-color-scheme: light)"
+          scheme: default
+          primary: indigo
+          accent: amber
+          toggle:
+              icon: material/lightbulb
+              name: Switch to dark mode
+        - media: "(prefers-color-scheme: dark)"
+          scheme: slate
+          primary: indigo
+          accent: amber
+          toggle:
+              icon: material/lightbulb-outline
+              name: Switch to light mode
+    features:
+        - search.suggest
+        - search.highlight
+        - content.tabs.link
+        - navigation.indexes
+        - content.tooltips
+        - navigation.path
+        - content.code.annotate
+        - content.code.copy
+        - content.code.select
+        - navigation.tabs
+
+extra_css:
+    - stylesheets/extra.css
+
+repo_name: ericmiguel/missil
+repo_url: https://github.com/ericmiguel/missil
+
+extra:
+    social:
+        - icon: fontawesome/brands/linkedin
+          link: https://www.linkedin.com/in/ericmrib
+        - icon: fontawesome/brands/github
+          link: https://github.com/ericmiguel
+
+nav:
+    - Introduction: index.md
+    - Rules: rule.md
+    - Bearers: bearers.md
+    - JWT utilities: jwt_utilities.md
+    - Exceptions: exceptions.md
+
+markdown_extensions:
+    - pymdownx.highlight:
+          anchor_linenums: true
+    - pymdownx.inlinehilite
+    - pymdownx.snippets
+    - pymdownx.superfences
+
+plugins:
+    - mkdocstrings:
+          handlers:
+              python:
+                  options:
+                      docstring_style: "numpy"
+                      extensions:
+                          - griffe_typingdoc
+                      show_root_heading: true
+                      show_if_no_docstring: true
+                      inherited_members: true
+                      members_order: source
+                      separate_signature: true
+                      unwrap_annotated: true
+                      filters:
+                          - "!^_"
+                      merge_init_into_class: true
+                      docstring_section_style: spacy
+                      signature_crossrefs: true
+                      show_symbol_type_heading: true
+                      show_symbol_type_toc: true
+
+    - termynal:
+          title: bash
+          buttons: macos
+          prompt_literal_start:
+              - "$"
+              - ">"

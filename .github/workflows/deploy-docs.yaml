@@ -1,0 +1,31 @@
+name: Deploy-docs
+on:
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Log level'     
+        required: true
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - .gitignore
+      - .github/**
+      - .pre-commit-config.yaml
+      - README.md
+      - pdm.lock
+
+jobs:
+  update_docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.x
+      - run: pip install mkdocs
+      - run: pip install mkdocs-material 
+      - run: pip install "mkdocstrings[python]"
+      - run: pip install griffe-typingdoc
+      - run: pip install termynal
+      - run: mkdocs gh-deploy --remote-branch docs-page --force
