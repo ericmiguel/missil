@@ -1,3 +1,5 @@
+"""Missil custom exceptions."""
+
 from fastapi import HTTPException
 
 
@@ -14,6 +16,18 @@ class PermissionErrorException(HTTPException):
         detail: str,
         headers: dict[str, str] | None = {"WWW-Authenticate": "Bearer"},
     ) -> None:
+        """
+        A HTTPException.
+
+        Parameters
+        ----------
+        status_code : int
+            HTTP status code.
+        detail : str
+            Exception description.
+        headers : _type_, optional
+            Response headers, by default {"WWW-Authenticate": "Bearer"}
+        """
         super().__init__(status_code=status_code, detail=detail, headers=headers)
 
 
@@ -26,4 +40,16 @@ class TokenErrorException(HTTPException):
         detail: str,
         headers: dict[str, str] | None = {"WWW-Authenticate": "Bearer"},
     ) -> None:
+        """
+        A HTTPException.
+
+        Parameters
+        ----------
+        status_code : int
+            HTTP status code.
+        detail : str
+            Exception description.
+        headers : _type_, optional
+            Response headers, by default {"WWW-Authenticate": "Bearer"}
+        """
         super().__init__(status_code=status_code, detail=detail, headers=headers)
