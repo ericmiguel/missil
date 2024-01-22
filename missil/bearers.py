@@ -28,6 +28,7 @@ class TokenBearer:
         """
         JWT token obtaining and decoding.
 
+
         Parameters
         ----------
         token_key : str
@@ -129,6 +130,7 @@ class HTTPTokenBearer(TokenBearer):
 
     async def __call__(self, request: Request) -> dict[str, Any]:
         """Fastapi FastAPIDependsFunc will call this method."""
+
         token = self.get_token_from_header(request)
         return self.decode_jwt(token)
 
@@ -138,6 +140,7 @@ class FlexibleTokenBearer(TokenBearer):
 
     async def __call__(self, request: Request) -> dict[str, Any]:
         """Fastapi FastAPIDependsFunc will call this method."""
+
         try:
             token = self.get_token_from_cookies(request)
         except TokenErrorException:
