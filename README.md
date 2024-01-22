@@ -5,6 +5,10 @@
     <em>Simple <a href="https://fastapi.tiangolo.com/">FastAPI</a> declarative endpoint-level access control, somewhat inspired by <a href="https://docs.pylonsproject.org/projects/pyramid/en/latest/narr/security.html">Pyramid</a>.</em>
 </p>
 <p align="center">
+    <span><a href="https://ericmiguel.github.io/missil/" target="_blank">[DOCS]</a></span>
+    <span><a href="https://github.com/ericmiguel/missil" target="_blank">[SOURCE]</a></span>
+</p>
+<p align="center">
 <a href="https://pypi.org/project/missil" target="_blank">
     <img src="https://img.shields.io/pypi/v/fastapi?color=%2334D058&label=pypi%20package" alt="Package version">
 </a>
@@ -13,19 +17,12 @@
 </a>
 </p>
 
+
 ```python
 @app.get("/", dependencies=[rules["finances:read"]])
 def read_root():
     return {"Hello": "World"}
 ```
-
----
-
-**Documentation**: <a href="https://ericmiguel.github.io/missil/" target="_blank">https://ericmiguel.github.io/missil</a>
-
-**Source Code**: <a href="https://github.com/ericmiguel/missil" target="_blank">https://github.com/ericmiguel/missil</a>
-
----
 
 ## Installation
 
@@ -40,9 +37,7 @@ For most applications the use of [scopes]("https://fastapi.tiangolo.com/advanced
 
 Let's take an scientific paper as an example: depending on the state of the submission process (like "draft", "submitted", "peer review" or "published") different users should have different permissions on viewing and editing. This could be acomplished with custom code in the path definition functions, but Missil offers a very legible and to-the-point to define these constraints.
 
-
 ## Quick usage
-
 
 ```python
 
@@ -88,11 +83,10 @@ def set_cookies(response: Response) -> None:
     )
 ```
 
-
-## Disclaimer 
+## Disclaimer
 
 Scopes did not meet my needs and other permission systems were too complex, so
-I designed this code for my and my team needs, but feel free to use it if you like.
+I designed this code for me and my team needs, but feel free to use it if you like.
 
 ## License
 
