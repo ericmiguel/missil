@@ -98,7 +98,9 @@ class TokenBearer:
 
         if self.user_permissions_key:
             try:
-                return decoded_token[self.user_permissions_key]
+                user_permissions: dict[str, int] = decoded_token[
+                    self.user_permissions_key
+                ]
             except KeyError:
                 raise TokenErrorException(
                     401,
@@ -107,18 +109,22 @@ class TokenBearer:
                         f"'{self.user_permissions_key}'"
                     ),
                 )
+            else:
+                return user_permissions
 
         return decoded_token
 
-    async def __call__(self) -> None:
+    async def __call__(self, *args: Any, **kwds: Any) -> dict[str, int]:
         """Declared just to avoid code checking alerts."""
-        return None
+        return {"": 0}
 
 
 class CookieTokenBearer(TokenBearer):
     """Read JWT token from http cookies."""
 
-    async def __call__(self, request: Request) -> dict[str, Any]:
+    async def __call__(
+        self, request: Request, *args: Any, **kwds: Any
+    ) -> dict[str, int]:
         """Fastapi FastAPIDependsFunc will call this method."""
         token = self.get_token_from_cookies(request)
         return self.decode_jwt(token)
@@ -127,7 +133,9 @@ class CookieTokenBearer(TokenBearer):
 class HTTPTokenBearer(TokenBearer):
     """Read JWT token from the request header."""
 
-    async def __call__(self, request: Request) -> dict[str, Any]:
+    async def __call__(
+        self, request: Request, *args: Any, **kwds: Any
+    ) -> dict[str, int]:
         """Fastapi FastAPIDependsFunc will call this method."""
         token = self.get_token_from_header(request)
         return self.decode_jwt(token)
@@ -136,7 +144,7 @@ class HTTPTokenBearer(TokenBearer):
 class FlexibleTokenBearer(TokenBearer):
     """Tries to read the token from the cookies or from request headers."""
 
-    async def __call__(self, request: Request) -> dict[str, Any]:
+    async def __call__(self, request: Request) -> dict[str, int]:
         """Fastapi FastAPIDependsFunc will call this method."""
         try:
             token = self.get_token_from_cookies(request)

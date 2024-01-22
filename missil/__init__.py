@@ -1,6 +1,9 @@
 """Simple FastAPI declarative endpoint-level access control."""
 
+from typing import TYPE_CHECKING
 from typing import Annotated
+from typing import Any
+from typing import Callable
 
 from fastapi import Depends as FastAPIDependsFunc
 from fastapi import status
@@ -55,12 +58,12 @@ class Rule(FastAPIDependsClass):
         self.use_cache = use_cache
 
     @property
-    def dependency(self):
+    def dependency(self) -> Callable[..., Any] | None:
         """Allows Missil to pass a FastAPI dependency that gets correctly evaluated."""
 
         def check_user_permissions(
             claims: Annotated[dict[str, int], FastAPIDependsFunc(self.bearer)]
-        ):
+        ) -> None:
             """
             Run JWT claims against an declared endpoint rule.
 
@@ -104,8 +107,14 @@ class Rule(FastAPIDependsClass):
 
         return check_user_permissions
 
+    if TYPE_CHECKING:
 
-def make_rules(bearer: TokenBearer, *areas) -> dict[str, Rule]:
+        @dependency.setter
+        def dependency(self, _: Any) -> None:
+            pass
+
+
+def make_rules(bearer: TokenBearer, *areas: str) -> dict[str, Rule]:
     """
     Create a Missil ruleset, conveniently.
 
