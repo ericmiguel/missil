@@ -1,3 +1,7 @@
+"""
+JWT token obtaining via dependency injection.
+"""
+
 from typing import Any
 
 from fastapi import Request
@@ -9,10 +13,11 @@ from missil.jwt_utilities import decode_jwt_token
 
 class TokenBearer:
     """
-    Parent class encapsulating JWT token obtaining and decode.
+    Parent class encapsulating JWT token obtaining and decoding.
 
-    Cannot be used as a FastAPI dependency, since the __call__ method returns None, but
-    can be used as a parent class to create customized token procedures.
+    Shouldn't be used as a FastAPI dependency, since the __call__ method returns None
+    (and is herefore declared just to avoid code checking alerts), but can be used as
+    a parent class to create customized token procedures.
     """
 
     def __init__(
@@ -23,7 +28,7 @@ class TokenBearer:
         algorithms: str = "HS256",
     ):
         """
-        _init__
+        JWT token obtaining and decoding.
 
         Parameters
         ----------
@@ -31,12 +36,25 @@ class TokenBearer:
             Name of the header or http cookie key where the token bearing user
             permissions is stored.
         secret_key : str
-            Key used to decode the JWT token.
+            Key used to decode the JWT token. See Python-jose docs for more details.
         user_permissions_key : str | None, optional
             Key name of the object specifying user permissions on the
-            decoded JWT token, by default None
+            decoded JWT token, by default None. Example:
+
+            Supposing the following decoded token claim:
+            ```python
+            {
+                "username": "John Doe",
+                "permissions": {  # user_permissions_key
+                    "finances": 0,
+                    "it": 0
+                }
+            }
+            ```
+
         algorithms : str, optional
-            JWT token decode algorithm, by default "HS256"
+            JWT token decode algorithm, by default "HS256". See Python-jose docs
+            for more details.
         """
         self.token_key = token_key
         self.token_secret_key = secret_key
@@ -75,7 +93,7 @@ class TokenBearer:
         return self.split_token_str(token)
 
     def decode_jwt(self, token: str) -> dict[str, int]:
-        """Decode the retrieved token value and return the user permissions."""
+        """Decode a retrieved token value and return the user permissions."""
 
         decoded_token = decode_jwt_token(
             token, self.token_secret_key, algorithm=self.algorithm
@@ -96,6 +114,7 @@ class TokenBearer:
         return decoded_token
 
     async def __call__(self) -> None:
+        """Declared just to avoid code checking alerts."""
         return None
 
 
