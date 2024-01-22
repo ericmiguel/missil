@@ -119,6 +119,7 @@ class TokenBearer:
         return {"": 0}
 
 
+
 class CookieTokenBearer(TokenBearer):
     """Read JWT token from http cookies."""
 

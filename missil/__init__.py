@@ -5,6 +5,7 @@ from typing import Annotated
 from typing import Any
 from typing import Callable
 
+
 from fastapi import Depends as FastAPIDependsFunc
 from fastapi import status
 from fastapi.params import Depends as FastAPIDependsClass
@@ -64,6 +65,7 @@ class Rule(FastAPIDependsClass):
         def check_user_permissions(
             claims: Annotated[dict[str, int], FastAPIDependsFunc(self.bearer)]
         ) -> None:
+
             """
             Run JWT claims against an declared endpoint rule.
 
@@ -115,6 +117,7 @@ class Rule(FastAPIDependsClass):
 
 
 def make_rules(bearer: TokenBearer, *areas: str) -> dict[str, Rule]:
+
     """
     Create a Missil ruleset, conveniently.
 
