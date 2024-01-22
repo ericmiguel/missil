@@ -31,7 +31,7 @@ def decode_jwt_token(token: str, secret_key: str, algorithm: str) -> dict[str, A
     return decoded_token
 
 
-def make_jwt_token(
+def encode_jwt_token(
     claims: dict[str, Any], secret: str, exp: datetime, algorithm: str = "HS256"
 ) -> str:
     """
