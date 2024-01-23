@@ -27,7 +27,7 @@ def read_root():
 
 
 @app.get("/set-cookies", status_code=200)
-def set_cookies(response: Response) -> str:
+def set_cookies(response: Response) -> dict[str, str]:
     """Just for example purposes."""
 
     claims = {
@@ -51,12 +51,17 @@ def set_cookies(response: Response) -> str:
         expires=1800,
     )
 
-    return "The token is stored as a cookie."
+    return {"msg": "The Authorization token is stored as a cookie."}
 
 
-@app.get("/items/{item_id}", dependencies=[rules["finances:read"]])
-def read_item(item_id: int, q: Union[str, None] = None):
-    return {"item_id": item_id, "q": q}
+@app.get("/finances/read", dependencies=[rules["finances:read"]])
+def finances_read() -> dict[str, str]:
+    return {"msg": "you have permission to perform read actions on finances!"}
+
+
+@app.get("/finances/write", dependencies=[rules["finances:write"]])
+def finances_write() -> dict[str, str]:
+    return {"msg": "you have permission to perform write actions on finances!"}
 
 
 if __name__ == "__main__":
