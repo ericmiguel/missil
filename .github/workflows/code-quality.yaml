@@ -1,0 +1,61 @@
+name: Code-quality
+on:
+    workflow_dispatch:
+        inputs:
+            logLevel:
+                description: "Log level"
+                required: true
+    push:
+        branches:
+            - main
+        paths-ignore:
+            - .gitignore
+            - .github/**
+            - .pre-commit-config.yaml
+            - README.md
+            - docs
+            - pdm.lock
+
+jobs:
+    code-quality:
+        strategy:
+            fail-fast: false
+            matrix:
+                python-version: ["3.10", "3.11", "3.12"]
+                os: ["windows-latest", "ubuntu-latest", "macos-latest"]
+        runs-on: ${{ matrix.os }}
+        steps:
+            - uses: actions/checkout@v2
+            - uses: actions/setup-python@v2
+              with:
+                  python-version: ${{ matrix.python-version }}
+            - name: Run image
+              uses: pdm-project/setup-pdm@v3
+              with:
+                  python-version: ${{ matrix.python-version }} # Version range or exact version of a Python version to use, the same as actions/setup-python
+                  architecture: x64 # The target architecture (x86, x64) of the Python interpreter. the same as actions/setup-python
+                  version: 2.8.0 # The version of PDM to install. Leave it as empty to use the latest version from PyPI, or 'head' to use the latest version from GitHub
+                  prerelease: false # Allow prerelease versions of PDM to be installed
+                  enable-pep582: false # Enable PEP 582 package loading globally
+                  allow-python-prereleases: false # Allow prerelease versions of Python to be installed. For example if only 3.12-dev is available, 3.12 will fallback to 3.12-dev
+                  update-python: true # Update the environment with the requested python version
+                  cache: true
+                  cache-dependency-path: "**/pdm.lock"
+            - name: Install dependencies
+              run: pdm install
+            - name: Run flake8
+              run: pdm run flake8
+            - name: Run Pyupgrade
+              run: pdm run pyupgrade
+            - name: Run Refurb
+              run: pdm run refurb
+            - name: Run black
+              run: pdm run black
+            - name: Run isort
+              run: pdm run isort
+            - name: Run Pydocstyle
+              run: pdm run pydocstyle 
+            - name: Run Mypy
+              run: pdm run mypy
+            - name: Run Pytest
+              run: pdm run pytest
