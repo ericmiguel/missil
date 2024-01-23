@@ -129,46 +129,32 @@ def test_decode_jwt_token(claims, secret_key, encoded_jwt_token):
 def test_decode_jwt_token_invalid_signature(fake_secret_key, encoded_jwt_token):
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=DeprecationWarning)
-        try:
+        with pytest.raises(
+            TokenErrorException, match="The token signature is invalid."
+        ):
             jwt_utilities.decode_jwt_token(encoded_jwt_token, fake_secret_key)
-        except TokenErrorException as e:
-            assert e.detail == "The token signature is invalid."
-            assert e.status_code == 403
-        else:
-            assert False
 
 
 def test_decode_jwt_invalid_claim(secret_key, encoded_invalid_claims_jwt_token):
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=DeprecationWarning)
-        try:
+        with pytest.raises(TokenErrorException, match="The token claim is invalid."):
             jwt_utilities.decode_jwt_token(encoded_invalid_claims_jwt_token, secret_key)
-        except TokenErrorException as e:
-            assert e.detail == "The token claim is invalid."
-            assert e.status_code == 403
-        else:
-            assert False
 
 
 def test_decode_jwt_expired_token(secret_key, encoded_expired_jwt_token):
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=DeprecationWarning)
-        try:
+        with pytest.raises(
+            TokenErrorException, match="The token signature has expired."
+        ):
             jwt_utilities.decode_jwt_token(encoded_expired_jwt_token, secret_key)
-        except TokenErrorException as e:
-            assert e.detail == "The token signature has expired."
-            assert e.status_code == 403
-        else:
-            assert False
 
 
 def test_decode_jwt_invalid_token(secret_key, encoded_invalid_jwt_token):
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=DeprecationWarning)
-        try:
+        with pytest.raises(
+            TokenErrorException, match="The token signature is invalid."
+        ) as e:
             jwt_utilities.decode_jwt_token(encoded_invalid_jwt_token, secret_key)
-        except TokenErrorException as e:
-            assert e.detail == "The token signature is invalid."
-            assert e.status_code == 403
-        else:
-            assert False
