@@ -57,8 +57,7 @@ def decode_jwt_token(
         raise TokenErrorException(
             status.HTTP_403_FORBIDDEN, "The token signature is invalid."
         )
-    except Exception:  # even more generalist exception handler
-        raise TokenErrorException(status.HTTP_403_FORBIDDEN, "The token is invalid.")
+
 
     return decoded_token
 
