@@ -1,0 +1,53 @@
+repos:
+    - repo: https://github.com/pre-commit/pre-commit-hooks
+      rev: v2.5.0
+      hooks:
+        - id: check-added-large-files
+    - repo: local
+      hooks:
+        - id: flake8
+          name: flake8
+          entry: flake8 missil sample tests
+          language: system
+          always_run: true
+          pass_filenames: false
+        - id: pyupgrade
+          name: pyupgrade
+          entry: pyupgrade missil/__init__.py missil/bearers.py missil/exceptions.py missil/jwt_utilities.py --py310-plus --py311-plus --py312-plus
+          language: system
+          always_run: true
+          pass_filenames: false
+        - id: black
+          name: black
+          entry: black missil sample tests
+          language: system
+          always_run: true
+          pass_filenames: false
+        - id: refurb
+          name: refurb
+          entry: refurb missil sample tests
+          language: system
+          always_run: true
+          pass_filenames: false
+        - id: isort
+          name: isort
+          entry: isort missil sample tests
+          language: system
+          always_run: true
+          pass_filenames: false
+        - id: mypy
+          name: mypy
+          entry: mypy missil sample
+          language: system
+          always_run: true
+          pass_filenames: false
+        - id: pydocstyle
+          name: pydocstyle
+          entry: pydocstyle missil sample
+          language: system
+          always_run: true
+          pass_filenames: false
+        - id: test
+          name: test
+          entry: pytest --cov=missil tests/
+  

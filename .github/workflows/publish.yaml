@@ -1,0 +1,20 @@
+name: Pypi-publish
+
+on:
+    release:
+        types:
+            - created
+
+jobs:
+    pypi-publish:
+        name: upload release to PyPI
+        runs-on: ubuntu-latest
+        permissions:
+            id-token: write
+        steps:
+            - uses: actions/checkout@v3
+
+            - uses: pdm-project/setup-pdm@v3
+
+            - name: Publish package distributions to PyPI
+              run: pdm publish
