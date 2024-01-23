@@ -8,14 +8,14 @@ theme:
     palette:
         - media: "(prefers-color-scheme: light)"
           scheme: default
-          primary: indigo
+          primary: teal
           accent: amber
           toggle:
               icon: material/lightbulb
               name: Switch to dark mode
         - media: "(prefers-color-scheme: dark)"
           scheme: slate
-          primary: indigo
+          primary: teal
           accent: amber
           toggle:
               icon: material/lightbulb-outline
