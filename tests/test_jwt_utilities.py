@@ -1,6 +1,5 @@
 import logging
-import warnings
-
+from tests.utils import ignore_warnings
 from datetime import datetime
 
 import pytest
@@ -123,43 +122,34 @@ def test_encode_jwt_token_fake_key(
     assert result != encoded_jwt_token
 
 
+@ignore_warnings
 def test_decode_jwt_token(claims, secret_key, encoded_jwt_token):
-    with warnings.catch_warnings():
-        warnings.filterwarnings("ignore", category=DeprecationWarning)
-        result = jwt_utilities.decode_jwt_token(encoded_jwt_token, secret_key)
+    result = jwt_utilities.decode_jwt_token(encoded_jwt_token, secret_key)
     del result["exp"]
     assert result == claims
 
 
+@ignore_warnings
 def test_decode_jwt_token_invalid_signature(fake_secret_key, encoded_jwt_token):
-    with warnings.catch_warnings():
-        warnings.filterwarnings("ignore", category=DeprecationWarning)
-        with pytest.raises(
-            TokenErrorException, match="The token signature is invalid."
-        ):
-            jwt_utilities.decode_jwt_token(encoded_jwt_token, fake_secret_key)
+    with pytest.raises(TokenErrorException, match="The token signature is invalid."):
+        jwt_utilities.decode_jwt_token(encoded_jwt_token, fake_secret_key)
 
 
+@ignore_warnings
 def test_decode_jwt_invalid_claim(secret_key, encoded_invalid_claims_jwt_token):
-    with warnings.catch_warnings():
-        warnings.filterwarnings("ignore", category=DeprecationWarning)
-        with pytest.raises(TokenErrorException, match="The token claim is invalid."):
-            jwt_utilities.decode_jwt_token(encoded_invalid_claims_jwt_token, secret_key)
+    with pytest.raises(TokenErrorException, match="The token claim is invalid."):
+        jwt_utilities.decode_jwt_token(encoded_invalid_claims_jwt_token, secret_key)
 
 
+@ignore_warnings
 def test_decode_jwt_expired_token(secret_key, encoded_expired_jwt_token):
-    with warnings.catch_warnings():
-        warnings.filterwarnings("ignore", category=DeprecationWarning)
-        with pytest.raises(
-            TokenErrorException, match="The token signature has expired."
-        ):
-            jwt_utilities.decode_jwt_token(encoded_expired_jwt_token, secret_key)
+    with pytest.raises(TokenErrorException, match="The token signature has expired."):
+        jwt_utilities.decode_jwt_token(encoded_expired_jwt_token, secret_key)
 
 
+@ignore_warnings
 def test_decode_jwt_invalid_token(secret_key, encoded_invalid_jwt_token):
-    with warnings.catch_warnings():
-        warnings.filterwarnings("ignore", category=DeprecationWarning)
-        with pytest.raises(
-            TokenErrorException, match="The token signature is invalid."
-        ) as e:
-            jwt_utilities.decode_jwt_token(encoded_invalid_jwt_token, secret_key)
+    with pytest.raises(
+        TokenErrorException, match="The token signature is invalid."
+    ) as e:
+        jwt_utilities.decode_jwt_token(encoded_invalid_jwt_token, secret_key)
