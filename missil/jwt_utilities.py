@@ -12,7 +12,9 @@ from jose.exceptions import JWTClaimsError
 from missil.exceptions import TokenErrorException
 
 
-def decode_jwt_token(token: str, secret_key: str, algorithm: str) -> dict[str, Any]:
+def decode_jwt_token(
+    token: str, secret_key: str, algorithm: str = "HS256"
+) -> dict[str, Any]:
     """
     Decode a JWT Token using Python-jose.
 
@@ -49,7 +51,7 @@ def decode_jwt_token(token: str, secret_key: str, algorithm: str) -> dict[str, A
         )
     except JWTClaimsError:
         raise TokenErrorException(
-            status.HTTP_403_FORBIDDEN, detail="The token claim is invalid."
+            status.HTTP_403_FORBIDDEN, "The token claim is invalid."
         )
     except JWTError:  # generalist exception handler
         raise TokenErrorException(
