@@ -1,5 +1,6 @@
 from tests.utils import ignore_warnings
 
+
 def test_set_bearer_token_cookies(test_app):
     response = test_app.get("/set-cookies")
     assert response.status_code == 200

@@ -1,5 +1,5 @@
 import logging
-from tests.utils import ignore_warnings
+
 from datetime import datetime
 
 import pytest
@@ -8,6 +8,7 @@ from jose import jwt
 
 from missil import jwt_utilities
 from missil.exceptions import TokenErrorException
+from tests.utils import ignore_warnings
 
 
 log = logging.getLogger(__name__)
