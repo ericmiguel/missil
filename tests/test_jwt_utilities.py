@@ -1,10 +1,15 @@
+import logging
+import warnings
+
+from datetime import datetime
+
+import pytest
+
+from jose import jwt
+
 from missil import jwt_utilities
 from missil.exceptions import TokenErrorException
-from datetime import datetime
-import logging
-import pytest
-import warnings
-from jose import jwt
+
 
 log = logging.getLogger(__name__)
 

@@ -58,7 +58,6 @@ def decode_jwt_token(
             status.HTTP_403_FORBIDDEN, "The token signature is invalid."
         )
 
-
     return decoded_token
 
 
