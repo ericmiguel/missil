@@ -20,7 +20,7 @@
 
 
 ```python
-@app.get("/", dependencies=[rules["finances:read"]])
+@app.get("/", dependencies=[rules["finances"].READ])
 def read_root():
     return {"Hello": "World"}
 ```
@@ -64,7 +64,7 @@ SECRET_KEY = "2ef9451be5d149ceaf5be306b5aa03b41a0331218926e12329c5eeba60ed5cf0"
 bearer = missil.FlexibleTokenBearer(TOKEN_KEY, SECRET_KEY)
 rules = missil.make_rules(bearer, "finances", "it", "other")
 
-@app.get("/", dependencies=[rules["finances:read"]])
+@app.get("/", dependencies=[rules["finances"].READ])
 def read_root():
     return {"Hello": "World"}
 
