@@ -21,7 +21,7 @@ from missil.jwt_utilities import encode_jwt_token
 
 READ = 0
 WRITE = 1
-DENY = -1
+DENY = -1  # TODO: will overlap READ and WRITE permissions, but not implemented yet
 
 
 class Rule(FastAPIDependsClass):
@@ -44,7 +44,7 @@ class Rule(FastAPIDependsClass):
         Parameters
         ----------
         area : str
-            Business area name like 'financial' or 'human resources'.
+            Business area name, like 'financial' or 'human resources'.
         level : int
             Access level: READ = 0 / WRITE = 1.
         bearer : TokenBearer
@@ -114,11 +114,50 @@ class Rule(FastAPIDependsClass):
             pass
 
 
-def make_rules(bearer: TokenBearer, *areas: str) -> dict[str, Rule]:
+class Area:
+    """
+    Business area.
+
+    A business area instance holds up READ and WRITE rules as attributes, which
+    can be injected as a FastAPI endpoint dependency. For example:
+
+    ```python
+    bearer = ...
+    finances = Area('finances', bearer)
+
+    @app.get("/finances/read", dependencies=[finances.READ])
+    def finances_read() -> dict[str, str]:
+        ...
+    ```
+    """
+
+    def __init__(self, name: str, bearer: TokenBearer) -> None:
+        """
+        Creates a business area object.
+
+        Parameters
+        ----------
+        name : str
+            Business area name.
+        bearer : TokenBearer
+            JWT token source source. See Bearers module.
+        """
+        self.name: str = name
+        self.bearer = bearer
+        self.READ = Rule(self.name, 0, self.bearer)
+        self.WRITE = Rule(self.name, 1, self.bearer)
+
+
+def make_rules(bearer: TokenBearer, *areas: str) -> dict[str, Area]:
     """
     Create a Missil ruleset, conveniently.
 
-    A ruleset is a simple dict bearing endpoint-appliable rules (dict[str, Rule].
+    A ruleset is a simple mapping bearing endpoint-appliable rule
+    bearers
+
+    ```python
+    rules: dict[str, Area] = make_rules(..., ...).
+    ```
 
     Given a token source (see Bearers module) and some business
     area names, like "it", "finances", "hr", this function will return something
@@ -126,22 +165,22 @@ def make_rules(bearer: TokenBearer, *areas: str) -> dict[str, Rule]:
 
     ```python
     {
-        'it:read': Rule,
-        'it:write': Rule,
-        'finances:read': Rule
+        'it': Area,
+        'finances': Area,
+        'hr': Area
         ...
     }
     ```
 
-    So, one can pass like a FastAPI dependency like:
+    So, one can pass like a FastAPI dependency, as shown in the following example:
 
     ```python
-    @app.get("/items/{item_id}", dependencies=[rules["finances:read"]])
+    @app.get("/items/{item_id}", dependencies=[rules["finances"].READ])
     def read_item(item_id: int, q: Union[str, None] = None):
         ...
     ```
 
-    See the sample API (sample/main.py) to a working usage example.
+    See the sample API (sample/main.py) to a folly working usage example.
 
     Parameters
     ----------
@@ -150,16 +189,10 @@ def make_rules(bearer: TokenBearer, *areas: str) -> dict[str, Rule]:
 
     Returns
     -------
-    dict[str, Rule]
+    dict[str, Area]
         Dict containing endpoint-appliable rules.
     """
-    rules = {}
-    for level in (READ, WRITE):
-        for area in areas:
-            level_name = "read" if level <= 0 else "write"
-            rules.update({f"{area}:{level_name}": Rule(area, level, bearer)})
-
-    return rules
+    return {area: Area(area, bearer) for area in areas}
 
 
 __all__ = [

@@ -54,13 +54,13 @@ def set_cookies(response: Response) -> dict[str, str]:
     return {"msg": "The Authorization token is stored as a cookie."}
 
 
-@app.get("/finances/read", dependencies=[rules["finances:read"]])
+@app.get("/finances/read", dependencies=[rules["finances"].READ])
 def finances_read() -> dict[str, str]:
     """Requires read permission on finances."""
     return {"msg": "you have permission to perform read actions on finances!"}
 
 
-@app.get("/finances/write", dependencies=[rules["finances:write"]])
+@app.get("/finances/write", dependencies=[rules["finances"].WRITE])
 def finances_write() -> dict[str, str]:
     """Requires write permission on finances."""
     return {"msg": "you have permission to perform write actions on finances!"}
