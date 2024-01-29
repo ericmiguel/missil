@@ -1,3 +1,5 @@
+import pytest
+
 from tests.utils import ignore_warnings
 
 
@@ -14,20 +16,33 @@ def test_ping(test_app):
 
 
 @ignore_warnings
-def test_read_access(test_app, bearer_token):
-    response = test_app.get("/finances/read", headers={"Authorization": bearer_token})
+@pytest.mark.parametrize(
+    "api_url, response_msg",
+    [
+        ("/finances/read", "you have permission to perform read actions on finances!"),
+        ("/finances/read/router", "finances read rights check via qualified router!"),
+    ],
+)
+def test_read_access(api_url, response_msg, test_app, bearer_token):
+    response = test_app.get(api_url, headers={"Authorization": bearer_token})
 
     assert response.status_code == 200
-    assert response.json() == {
-        "msg": "you have permission to perform read actions on finances!"
-    }
+    assert response.json() == {"msg": response_msg}
 
 
 @ignore_warnings
-def test_write_access(test_app, bearer_token):
-    response = test_app.get("/finances/write", headers={"Authorization": bearer_token})
+@pytest.mark.parametrize(
+    "api_url, response_msg",
+    [
+        (
+            "/finances/write",
+            "insufficient access level: (0/1) on finances.",
+        ),
+        ("/finances/write/router", "insufficient access level: (0/1) on finances."),
+    ],
+)
+def test_write_access(api_url, response_msg, test_app, bearer_token):
+    response = test_app.get(api_url, headers={"Authorization": bearer_token})
 
     assert response.status_code == 403
-    assert response.json() == {
-        "detail": "insufficient access level: (0/1) on finances."
-    }
+    assert response.json() == {"detail": response_msg}
