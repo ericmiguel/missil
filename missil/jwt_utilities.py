@@ -1,6 +1,8 @@
 """JWT token utilities."""
 
 from datetime import datetime
+from datetime import timedelta
+from datetime import timezone
 from typing import Any
 
 from fastapi import status
@@ -62,7 +64,11 @@ def decode_jwt_token(
 
 
 def encode_jwt_token(
-    claims: dict[str, Any], secret: str, exp: datetime, algorithm: str = "HS256"
+    claims: dict[str, Any],
+    secret: str,
+    exp: int,
+    base: datetime = datetime.now(timezone.utc),
+    algorithm: str = "HS256",
 ) -> str:
     """
     Create a JWT token.
@@ -73,16 +79,19 @@ def encode_jwt_token(
         Token user data.
     secret : str
         Secret key to sign the token.
-    exp : datetime
-        Token expiration datetime.
+    exp : int, optional
+        Token expiration in hours.
+    base : datetime, optional
+        Token expiration base datetime, where the final datetime is given by
+        base + exp, by default datetime.now(timezone.utc)
     algorithm : str, optional
         Encode algorithm, by default "HS256"
 
     Returns
     -------
     str
-        Encoded JWT token.
+        _description_
     """
     to_encode = claims.copy()
-    to_encode.update({"exp": exp})
+    to_encode.update({"exp": base + timedelta(exp)})
     return jwt.encode(to_encode, key=secret, algorithm=algorithm)
