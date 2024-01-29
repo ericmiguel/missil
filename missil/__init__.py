@@ -121,6 +121,11 @@ class Rule(FastAPIDependsClass):
 
         @dependency.setter
         def dependency(self, _: Any) -> None:
+            """
+            Only declared to avoid type checking errors.
+
+            Mypy: cannot override writeable attribute with read-only property.
+            """
             pass
 
 
@@ -232,6 +237,9 @@ class QualifiedRouter(APIRouter):
     ) -> None:
         """
         Same parameters as in FastAPI APIRouter class, plus an extra rules parameter.
+
+        It can be used to avoid multiple redudant rule declarations in same
+        business area endpoints.
 
         Example:
 
