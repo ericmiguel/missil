@@ -47,8 +47,9 @@ extra:
 
 nav:
     - Introduction: index.md
-    - Rules: rule.md
+    - Rules: rules.md
     - Bearers: bearers.md
+    - Routers: routers.md
     - JWT utilities: jwt_utilities.md
     - Exceptions: exceptions.md
 
