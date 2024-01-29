@@ -1,9 +1,5 @@
 """Missil sample usage."""
 
-from datetime import datetime
-from datetime import timedelta
-from datetime import timezone
-
 from fastapi import FastAPI
 from fastapi import Response
 
@@ -40,8 +36,8 @@ def set_cookies(response: Response) -> dict[str, str]:
         },
     }
 
-    token_expiration = datetime.now(timezone.utc) + timedelta(hours=8)
-    token = missil.encode_jwt_token(claims, SECRET_KEY, token_expiration)
+    token_expiration_in_hours = 8
+    token = missil.encode_jwt_token(claims, SECRET_KEY, token_expiration_in_hours)
 
     response.set_cookie(
         key=TOKEN_KEY,
