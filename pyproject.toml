@@ -30,10 +30,7 @@ classifiers = [
     "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
     "Topic :: Internet :: WWW/HTTP",
 ]
-dependencies = [
-    "fastapi>=0.104.1",
-    "python-jose[cryptography]>=3.3.0",
-]
+dependencies = ["fastapi>=0.104.1", "python-jose[cryptography]>=3.3.0"]
 requires-python = ">=3.10"
 readme = "README.md"
 license = { text = "MIT" }
@@ -150,19 +147,20 @@ pyupgrade = { cmd = [
     "sample/main.py",
     "--py310-plus",
     "--py311-plus",
-    "--py312-plus"
+    "--py312-plus",
 ] }
 pydocstyle = { cmd = ["pydocstyle", "missil", "sample"] }
 improve = { composite = ["flake8", "pyupgrade", "refurb"] }
 format = { composite = ["autoflake", "black", "isort"] }
 test = { cmd = ["pytest", "--cov=missil", "tests/"] }
 code-quality = { composite = [
-    "improve",
     "format",
+    "improve",
     "mypy",
     "pydocstyle",
     "test",
 ] }
+pre-commit-test-run = { cmd = ["pre-commit", "run", "--all-files"] }
 
 [build-system]
 requires = ["pdm-backend"]
