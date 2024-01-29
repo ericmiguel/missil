@@ -9,6 +9,8 @@ from fastapi import Response
 
 import missil
 
+from missil.routers import QualifiedRouter
+
 
 app = FastAPI()
 
@@ -18,7 +20,10 @@ TOKEN_KEY = "Authorization"
 SECRET_KEY = "2ef9451be5d149ceaf5be306b5aa03b41a0331218926e12329c5eeba60ed5cf0"
 
 bearer = missil.FlexibleTokenBearer(TOKEN_KEY, SECRET_KEY, "userPermissions")
-rules = missil.make_rules(bearer, "finances", "it", "other")
+bas = missil.make_rules(bearer, "finances", "it", "other")  # business areas
+
+finances_read_router = QualifiedRouter(rules=[bas["finances"].READ])
+finances_write_router = QualifiedRouter(rules=[bas["finances"].WRITE])
 
 
 @app.get("/")
@@ -54,17 +59,32 @@ def set_cookies(response: Response) -> dict[str, str]:
     return {"msg": "The Authorization token is stored as a cookie."}
 
 
-@app.get("/finances/read", dependencies=[rules["finances"].READ])
+@app.get("/finances/read", dependencies=[bas["finances"].READ])
 def finances_read() -> dict[str, str]:
     """Requires read permission on finances."""
     return {"msg": "you have permission to perform read actions on finances!"}
 
 
-@app.get("/finances/write", dependencies=[rules["finances"].WRITE])
+@app.get("/finances/write", dependencies=[bas["finances"].WRITE])
 def finances_write() -> dict[str, str]:
     """Requires write permission on finances."""
     return {"msg": "you have permission to perform write actions on finances!"}
 
+
+@finances_read_router.get("/finances/read/router")
+def finances_read_route() -> dict[str, str]:
+    """Requires read permission on finances."""
+    return {"msg": "finances read rights check via qualified router!"}
+
+
+@finances_write_router.get("/finances/write/router")
+def finances_write_route() -> dict[str, str]:
+    """Requires read permission on finances."""
+    return {"msg": "finances write rights check via qualified router!"}
+
+
+app.include_router(finances_read_router)
+app.include_router(finances_write_router)
 
 if __name__ == "__main__":
     import uvicorn
