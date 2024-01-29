@@ -46,10 +46,6 @@ import missil
 from fastapi import FastAPI
 from fastapi import Response
 
-from datetime import datetime
-from datetime import timezone
-from datetime import timedelta
-
 app = FastAPI()
 
 TOKEN_KEY = "Authorization"
@@ -71,8 +67,8 @@ def set_cookies(response: Response) -> None:
         "it": missil.WRITE,
     }
 
-    token_expiration = datetime.now(timezone.utc) + timedelta(hours=8)
-    token = missil.encode_jwt_token(sample_user_privileges, SECRET_KEY, token_expiration)
+    token_expiration_in_hours = 8
+    token = missil.encode_jwt_token(claims, SECRET_KEY, token_expiration_in_hours)
 
     response.set_cookie(
         key=TOKEN_KEY,

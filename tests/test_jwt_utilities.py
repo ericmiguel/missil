@@ -1,6 +1,8 @@
 import logging
 
 from datetime import datetime
+from datetime import timedelta
+from datetime import timezone
 
 import pytest
 
@@ -47,13 +49,18 @@ def fake_claims():
 
 
 @pytest.fixture(scope="module")
-def token_valid_expiration():
-    return datetime(2200, 1, 1, 0, 0, 0, 0)
+def timedelta_token_expiration():
+    return 8  # hours
 
 
 @pytest.fixture(scope="module")
-def token_expired_datetime():
-    return datetime(1900, 1, 1, 0, 0, 0, 0)
+def token_valid_base_expiration():
+    return datetime(2200, 1, 1, 0, 0, 0, 0, timezone.utc)
+
+
+@pytest.fixture(scope="module")
+def token_expired_base_datetime():
+    return datetime(1900, 1, 1, 0, 0, 0, 0, timezone.utc)
 
 
 @pytest.fixture(scope="module")
@@ -62,9 +69,13 @@ def token_invalid_expiration():
 
 
 @pytest.fixture(scope="module")
-def encoded_jwt_token(claims, secret_key, token_valid_expiration):
+def encoded_jwt_token(
+    claims, secret_key, timedelta_token_expiration, token_valid_base_expiration
+):
     to_encode = claims.copy()
-    to_encode.update({"exp": token_valid_expiration})
+    to_encode.update(
+        {"exp": token_valid_base_expiration + timedelta(timedelta_token_expiration)}
+    )
     return jwt.encode(to_encode, secret_key, "HS256")
 
 
@@ -76,49 +87,69 @@ def encoded_invalid_claims_jwt_token(claims, secret_key, token_invalid_expiratio
 
 
 @pytest.fixture(scope="module")
-def encoded_expired_jwt_token(claims, secret_key, token_expired_datetime):
+def encoded_expired_jwt_token(claims, secret_key, token_expired_base_datetime):
     to_encode = claims.copy()
-    to_encode.update({"exp": token_expired_datetime})
+    to_encode.update({"exp": token_expired_base_datetime})
     return jwt.encode(to_encode, secret_key, "HS256")
 
 
 @pytest.fixture(scope="module")
-def encoded_invalid_jwt_token(claims, secret_key, token_expired_datetime):
+def encoded_invalid_jwt_token(claims, secret_key, token_expired_base_datetime):
     to_encode = claims.copy()
-    to_encode.update({"exp": token_expired_datetime})
+    to_encode.update({"exp": token_expired_base_datetime})
     encoded = jwt.encode(to_encode, secret_key, "HS256")
     invalidated_token = encoded[:39] + encoded[40:]
     return invalidated_token
 
 
 def test_encode_jwt_token(
-    claims, secret_key, token_valid_expiration, encoded_jwt_token
+    claims,
+    secret_key,
+    timedelta_token_expiration,
+    token_valid_base_expiration,
+    encoded_jwt_token,
 ):
-    result = jwt_utilities.encode_jwt_token(claims, secret_key, token_valid_expiration)
+    result = jwt_utilities.encode_jwt_token(
+        claims, secret_key, timedelta_token_expiration, token_valid_base_expiration
+    )
     assert result == encoded_jwt_token
 
 
 def test_encode_expired_jwt_token(
-    claims, secret_key, token_expired_datetime, encoded_jwt_token
+    claims,
+    secret_key,
+    timedelta_token_expiration,
+    token_expired_base_datetime,
+    encoded_jwt_token,
 ):
-    result = jwt_utilities.encode_jwt_token(claims, secret_key, token_expired_datetime)
+    result = jwt_utilities.encode_jwt_token(
+        claims, secret_key, timedelta_token_expiration, token_expired_base_datetime
+    )
     assert result != encoded_jwt_token
 
 
 def test_encode_fake_claim_jwt_token(
-    fake_claims, secret_key, token_valid_expiration, encoded_jwt_token
+    fake_claims,
+    secret_key,
+    timedelta_token_expiration,
+    token_valid_base_expiration,
+    encoded_jwt_token,
 ):
     result = jwt_utilities.encode_jwt_token(
-        fake_claims, secret_key, token_valid_expiration
+        fake_claims, secret_key, timedelta_token_expiration, token_valid_base_expiration
     )
     assert result != encoded_jwt_token
 
 
 def test_encode_jwt_token_fake_key(
-    claims, fake_secret_key, token_valid_expiration, encoded_jwt_token
+    claims,
+    fake_secret_key,
+    timedelta_token_expiration,
+    token_valid_base_expiration,
+    encoded_jwt_token,
 ):
     result = jwt_utilities.encode_jwt_token(
-        claims, fake_secret_key, token_valid_expiration
+        claims, fake_secret_key, timedelta_token_expiration, token_valid_base_expiration
     )
     assert result != encoded_jwt_token
 
