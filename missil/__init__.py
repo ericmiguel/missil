@@ -9,6 +9,7 @@ from missil.exceptions import PermissionErrorException
 from missil.exceptions import TokenErrorException
 from missil.jwt_utilities import decode_jwt_token
 from missil.jwt_utilities import encode_jwt_token
+from missil.routers import QualifiedRouter
 from missil.rules import DENY
 from missil.rules import READ
 from missil.rules import WRITE
@@ -27,6 +28,7 @@ __all__ = [
     "FlexibleTokenBearer",
     "Rule",
     "make_rules",
+    "QualifiedRouter",
     "READ",
     "WRITE",
     "DENY",
