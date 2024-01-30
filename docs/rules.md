@@ -4,6 +4,10 @@ Missil main class. Works as a FastAPI [dependency](https://fastapi.tiangolo.com/
 
 ::: missil.Rule
 
+## Make Rule
+
+:: missil.make_rule
+
 ## Make Rules
 
 ::: missil.make_rules
