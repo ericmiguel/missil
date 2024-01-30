@@ -14,6 +14,7 @@ from missil.rules import DENY
 from missil.rules import READ
 from missil.rules import WRITE
 from missil.rules import Rule
+from missil.rules import make_rule
 from missil.rules import make_rules
 
 
@@ -27,6 +28,7 @@ __all__ = [
     "HTTPTokenBearer",
     "FlexibleTokenBearer",
     "Rule",
+    "make_rule",
     "make_rules",
     "QualifiedRouter",
     "READ",
