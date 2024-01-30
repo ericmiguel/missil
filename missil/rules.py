@@ -191,3 +191,22 @@ def make_rules(bearer: TokenBearer, *areas: str) -> dict[str, Area]:
         Dict containing endpoint-appliable rules.
     """
     return {area: Area(area, bearer) for area in areas}
+
+
+def make_rule(bearer: TokenBearer, area: str) -> Area:
+    """
+    Create a single Missil rule.
+
+    Parameters
+    ----------
+    bearer : TokenBearer
+        JWT token source source. See Bearers module.
+    area : str
+        A business area name.
+
+    Returns
+    -------
+    Area
+        Business area object, containing READ and WRITE rules.
+    """    
+    return Area(area, bearer)
