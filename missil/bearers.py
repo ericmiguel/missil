@@ -101,14 +101,14 @@ class TokenBearer:
                 user_permissions: dict[str, int] = decoded_token[
                     self.user_permissions_key
                 ]
-            except KeyError:
+            except KeyError as ke:
                 raise TokenErrorException(
                     401,
                     (
                         "User permissions not found at token key "
                         f"'{self.user_permissions_key}'"
                     ),
-                )
+                ) from ke
             else:
                 return user_permissions
 
@@ -150,9 +150,9 @@ class FlexibleTokenBearer(TokenBearer):
             token = self.get_token_from_cookies(request)
         except TokenErrorException:
             token = self.get_token_from_header(request)
-        except Exception:
+        except Exception as e:
             raise TokenErrorException(
                 status.HTTP_417_EXPECTATION_FAILED, "Token not found."
-            )
+            ) from e
 
         return self.decode_jwt(token)
