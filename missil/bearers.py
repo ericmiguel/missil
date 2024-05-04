@@ -1,5 +1,7 @@
 """JWT token obtaining via dependency injection."""
 
+from typing import Any
+
 from fastapi import Request
 from fastapi import status
 
@@ -93,7 +95,20 @@ class TokenBearer:
         decoded_token = decode_jwt_token(
             token, self.token_secret_key, algorithm=self.algorithm
         )
+        return decoded_token
 
+    def decode_from_cookies(self, request: Request) -> dict[str, Any]:
+        """Get token from cookies and decode it."""
+        token = self.get_token_from_cookies(request)
+        return self.decode_jwt(token)
+
+    def decode_from_header(self, request: Request) -> dict[str, Any]:
+        """Get token from headers and decode it."""
+        token = self.get_token_from_header(request)
+        return self.decode_jwt(token)
+
+    def get_user_permissions(self, decoded_token: dict[str, Any]) -> dict[str, int]:
+        """Get user permissions from a decoded token."""
         if self.user_permissions_key:
             try:
                 user_permissions: dict[str, int] = decoded_token[
@@ -110,39 +125,42 @@ class TokenBearer:
             else:
                 return user_permissions
 
-        return decoded_token
+        raise TokenErrorException(500, "User permissions key not provided.")
 
 
 class CookieTokenBearer(TokenBearer):
     """Read JWT token from http cookies."""
 
-    async def __call__(self, request: Request) -> dict[str, int]:
+    async def __call__(self, request: Request) -> tuple[dict[str, Any], dict[str, int]]:
         """Fastapi FastAPIDependsFunc will call this method."""
-        token = self.get_token_from_cookies(request)
-        return self.decode_jwt(token)
+        decoded_token = self.decode_from_cookies(request)
+        user_permissions = self.get_user_permissions(decoded_token)
+        return decoded_token, user_permissions
 
 
 class HTTPTokenBearer(TokenBearer):
     """Read JWT token from the request header."""
 
-    async def __call__(self, request: Request) -> dict[str, int]:
+    async def __call__(self, request: Request) -> tuple[dict[str, Any], dict[str, int]]:
         """Fastapi FastAPIDependsFunc will call this method."""
-        token = self.get_token_from_header(request)
-        return self.decode_jwt(token)
+        decoded_token = self.decode_from_header(request)
+        user_permissions = self.get_user_permissions(decoded_token)
+        return decoded_token, user_permissions
 
 
 class FlexibleTokenBearer(TokenBearer):
     """Tries to read the token from the cookies or from request headers."""
 
-    async def __call__(self, request: Request) -> dict[str, int]:
+    async def __call__(self, request: Request) -> tuple[dict[str, Any], dict[str, int]]:
         """Fastapi FastAPIDependsFunc will call this method."""
         try:
-            token = self.get_token_from_cookies(request)
+            decoded_token = self.decode_from_cookies(request)
         except TokenErrorException:
-            token = self.get_token_from_header(request)
+            decoded_token = self.decode_from_header(request)
         except Exception as e:
             raise TokenErrorException(
                 status.HTTP_417_EXPECTATION_FAILED, "Token not found."
             ) from e
 
-        return self.decode_jwt(token)
+        user_permissions = self.get_user_permissions(decoded_token)
+        return decoded_token, user_permissions
