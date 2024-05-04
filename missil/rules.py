@@ -131,7 +131,7 @@ class Area:
 
     def __init__(self, name: str, bearer: TokenBearer) -> None:
         """
-        Creates a business area object.
+        Create a business area object.
 
         Parameters
         ----------
