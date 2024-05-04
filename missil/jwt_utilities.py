@@ -67,7 +67,7 @@ def encode_jwt_token(
     claims: dict[str, Any],
     secret: str,
     exp: int,
-    base: datetime = datetime.now(timezone.utc),
+    base: datetime | None = None,
     algorithm: str = "HS256",
 ) -> str:
     """
@@ -92,6 +92,9 @@ def encode_jwt_token(
     str
         _description_
     """
+    if base is None:
+        base = datetime.now(timezone.utc)
+    
     to_encode = claims.copy()
     to_encode.update({"exp": base + timedelta(exp)})
     return jwt.encode(to_encode, key=secret, algorithm=algorithm)
