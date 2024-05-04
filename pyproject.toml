@@ -220,6 +220,7 @@ dev = [
 [tool.pdm.scripts]
 format = { shell = "ruff format" }
 check = { shell = "ruff check" }
+check-dry-run = { shell = "ruff check --no-fix" }
 check-dead = { shell = "vulture missil --min-confidence=90" }
 check-dead-lax = { shell = "vulture missil --min-confidence=80" }
 check-dead-sensible = { shell = "vulture missil --min-confidence=60"}
