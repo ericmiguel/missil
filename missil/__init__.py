@@ -1,6 +1,5 @@
 """Simple FastAPI declarative endpoint-level access control."""
 
-
 from missil.bearers import CookieTokenBearer
 from missil.bearers import FlexibleTokenBearer
 from missil.bearers import HTTPTokenBearer

@@ -4,7 +4,6 @@ from fastapi import FastAPI
 from fastapi import Response
 
 import missil
-
 from missil.routers import QualifiedRouter
 
 

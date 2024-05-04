@@ -1,7 +1,5 @@
 """JWT token obtaining via dependency injection."""
 
-from typing import Any
-
 from fastapi import Request
 from fastapi import status
 
@@ -45,8 +43,8 @@ class TokenBearer:
                 "username": "John Doe",
                 "permissions": {  # user_permissions_key
                     "finances": 0,
-                    "it": 0
-                }
+                    "it": 0,
+                },
             }
             ```
 
@@ -113,6 +111,7 @@ class TokenBearer:
                 return user_permissions
 
         return decoded_token
+
 
 class CookieTokenBearer(TokenBearer):
     """Read JWT token from http cookies."""
