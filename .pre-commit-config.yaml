@@ -5,51 +5,33 @@ repos:
         - id: check-added-large-files
     - repo: local
       hooks:
-        - id: flake8
-          name: flake8
-          entry: pdm run flake8
+        - id: "#1"
+          name: format
+          entry: pdm run format
           language: system
           always_run: true
           pass_filenames: false
-        - id: pyupgrade
-          name: pyupgrade
-          entry: pdm run pyupgrade
+        - id: "#2"
+          name: code standards, docstring, and imports check
+          entry: pdm run check
           language: system
           always_run: true
           pass_filenames: false
-        - id: black
-          name: black
-          entry: pdm run black
+        - id: "#3"
+          name: dead code check
+          entry: pdm run check-dead
           language: system
           always_run: true
           pass_filenames: false
-        - id: refurb
-          name: refurb
-          entry: pdm run refurb
+        - id: "#4"
+          name: type check
+          entry: pdm run check-typing
           language: system
           always_run: true
           pass_filenames: false
-        - id: isort
-          name: isort
-          entry: pdm run isort
-          language: system
-          always_run: true
-          pass_filenames: false
-        - id: mypy
-          name: mypy
-          entry: pdm run mypy
-          language: system
-          always_run: true
-          pass_filenames: false
-        - id: pydocstyle
-          name: pydocstyle
-          entry: pdm run pydocstyle
-          language: system
-          always_run: true
-          pass_filenames: false
-        - id: test
+        - id: "#5"
           name: test
-          entry: pdm run pytest --cov=missil tests/
+          entry: pdm run test
           language: system
           always_run: true
           pass_filenames: false
