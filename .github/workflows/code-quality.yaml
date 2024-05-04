@@ -43,19 +43,13 @@ jobs:
                   cache-dependency-path: "**/pdm.lock"
             - name: Install dependencies
               run: pdm install
-            - name: Run flake8
-              run: pdm run flake8
-            - name: Run Pyupgrade
-              run: pdm run pyupgrade
-            - name: Run Refurb
-              run: pdm run refurb
-            - name: Run black
-              run: pdm run black
-            - name: Run isort
-              run: pdm run isort
-            - name: Run Pydocstyle
-              run: pdm run pydocstyle 
-            - name: Run Mypy
-              run: pdm run mypy
-            - name: Run Pytest
-              run: pdm run pytest
+            - name: run format
+              run: pdm run format
+            - name: run check
+              run: pdm run check
+            - name: run check-dead
+              run: pdm run check-dead
+            - name: run check-typing
+              run: pdm run check-typing
+            - name: run test
+              run: pdm run test
