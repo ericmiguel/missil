@@ -46,3 +46,16 @@ def test_write_access(api_url, response_msg, test_app, bearer_token):
 
     assert response.status_code == 403
     assert response.json() == {"detail": response_msg}
+
+
+@ignore_warnings
+@pytest.mark.parametrize(
+    "api_url",
+    [
+        "/user-profile",
+    ],
+)
+def test_get_current_user(api_url, test_app, bearer_token, decoded_token):
+    response = test_app.get(api_url, headers={"Authorization": bearer_token})
+    assert response.status_code == 200
+    assert response.json() == decoded_token
