@@ -4,11 +4,7 @@ from fastapi import HTTPException
 
 
 class PermissionErrorException(HTTPException):
-    """
-    An HTTP exception you can raise in your own code to show errors to the client.
-
-    Mainly for client errors, invalid authentication, invalid data, etc.
-    """
+    """HTTP Exception you can raise to show on permission-related errors."""
 
     def __init__(
         self,
@@ -17,7 +13,7 @@ class PermissionErrorException(HTTPException):
         headers: dict[str, str] | None = None,
     ) -> None:
         """
-        A HTTPException.
+        Initialize a PermissionErrorException.
 
         Parameters
         ----------
@@ -44,7 +40,7 @@ class TokenErrorException(HTTPException):
         headers: dict[str, str] | None = None,
     ) -> None:
         """
-        A HTTPException.
+        Initialize a TokenErrorException.
 
         Parameters
         ----------

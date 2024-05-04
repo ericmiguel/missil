@@ -94,7 +94,7 @@ def encode_jwt_token(
     """
     if base is None:
         base = datetime.now(timezone.utc)
-    
+
     to_encode = claims.copy()
     to_encode.update({"exp": base + timedelta(exp)})
     return jwt.encode(to_encode, key=secret, algorithm=algorithm)
