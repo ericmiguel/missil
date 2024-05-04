@@ -114,11 +114,6 @@ class TokenBearer:
 
         return decoded_token
 
-    async def __call__(self, *args: Any, **kwds: Any) -> dict[str, int]:
-        """Declared just to avoid code checking alerts."""
-        return {"": 0}
-
-
 class CookieTokenBearer(TokenBearer):
     """Read JWT token from http cookies."""
 
