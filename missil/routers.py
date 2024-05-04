@@ -44,7 +44,7 @@ class QualifiedRouter(APIRouter):
         generate_unique_id_function: Callable[[APIRoute], str] = generate_unique_id,
     ) -> None:
         """
-        Same parameters as in FastAPI APIRouter class, plus an extra rules parameter.
+        FastAPI APIRouter class, plus an extra rules parameter.
 
         It can be used to avoid multiple redudant rule declarations in same
         business area endpoints.

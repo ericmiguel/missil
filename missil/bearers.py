@@ -1,7 +1,5 @@
 """JWT token obtaining via dependency injection."""
 
-from typing import Any
-
 from fastapi import Request
 from fastapi import status
 
@@ -45,8 +43,8 @@ class TokenBearer:
                 "username": "John Doe",
                 "permissions": {  # user_permissions_key
                     "finances": 0,
-                    "it": 0
-                }
+                    "it": 0,
+                },
             }
             ```
 
@@ -101,30 +99,24 @@ class TokenBearer:
                 user_permissions: dict[str, int] = decoded_token[
                     self.user_permissions_key
                 ]
-            except KeyError:
+            except KeyError as ke:
                 raise TokenErrorException(
                     401,
                     (
                         "User permissions not found at token key "
                         f"'{self.user_permissions_key}'"
                     ),
-                )
+                ) from ke
             else:
                 return user_permissions
 
         return decoded_token
 
-    async def __call__(self, *args: Any, **kwds: Any) -> dict[str, int]:
-        """Declared just to avoid code checking alerts."""
-        return {"": 0}
-
 
 class CookieTokenBearer(TokenBearer):
     """Read JWT token from http cookies."""
 
-    async def __call__(
-        self, request: Request, *args: Any, **kwds: Any
-    ) -> dict[str, int]:
+    async def __call__(self, request: Request) -> dict[str, int]:
         """Fastapi FastAPIDependsFunc will call this method."""
         token = self.get_token_from_cookies(request)
         return self.decode_jwt(token)
@@ -133,9 +125,7 @@ class CookieTokenBearer(TokenBearer):
 class HTTPTokenBearer(TokenBearer):
     """Read JWT token from the request header."""
 
-    async def __call__(
-        self, request: Request, *args: Any, **kwds: Any
-    ) -> dict[str, int]:
+    async def __call__(self, request: Request) -> dict[str, int]:
         """Fastapi FastAPIDependsFunc will call this method."""
         token = self.get_token_from_header(request)
         return self.decode_jwt(token)
@@ -150,9 +140,9 @@ class FlexibleTokenBearer(TokenBearer):
             token = self.get_token_from_cookies(request)
         except TokenErrorException:
             token = self.get_token_from_header(request)
-        except Exception:
+        except Exception as e:
             raise TokenErrorException(
                 status.HTTP_417_EXPECTATION_FAILED, "Token not found."
-            )
+            ) from e
 
         return self.decode_jwt(token)

@@ -1,12 +1,10 @@
-import logging
-
 from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
-
-import pytest
+import logging
 
 from jose import jwt
+import pytest
 
 from missil import jwt_utilities
 from missil.exceptions import TokenErrorException

@@ -56,7 +56,7 @@ class Rule(FastAPIDependsClass):
         """Allows Missil to pass a FastAPI dependency that gets correctly evaluated."""
 
         def check_user_permissions(
-            claims: Annotated[dict[str, int], FastAPIDependsFunc(self.bearer)]
+            claims: Annotated[dict[str, int], FastAPIDependsFunc(self.bearer)],
         ) -> None:
             """
             Run JWT claims against an declared endpoint rule.
@@ -121,17 +121,17 @@ class Area:
 
     ```python
     bearer = ...
-    finances = Area('finances', bearer)
+    finances = Area("finances", bearer)
+
 
     @app.get("/finances/read", dependencies=[finances.READ])
-    def finances_read() -> dict[str, str]:
-        ...
+    def finances_read() -> dict[str, str]: ...
     ```
     """
 
     def __init__(self, name: str, bearer: TokenBearer) -> None:
         """
-        Creates a business area object.
+        Create a business area object.
 
         Parameters
         ----------
@@ -174,8 +174,7 @@ def make_rules(bearer: TokenBearer, *areas: str) -> dict[str, Area]:
 
     ```python
     @app.get("/items/{item_id}", dependencies=[rules["finances"].READ])
-    def read_item(item_id: int, q: Union[str, None] = None):
-        ...
+    def read_item(item_id: int, q: Union[str, None] = None): ...
     ```
 
     See the sample API (sample/main.py) to a folly working usage example.

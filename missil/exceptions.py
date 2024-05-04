@@ -4,20 +4,16 @@ from fastapi import HTTPException
 
 
 class PermissionErrorException(HTTPException):
-    """
-    An HTTP exception you can raise in your own code to show errors to the client.
-
-    Mainly for client errors, invalid authentication, invalid data, etc.
-    """
+    """HTTP Exception you can raise to show on permission-related errors."""
 
     def __init__(
         self,
         status_code: int,
         detail: str,
-        headers: dict[str, str] | None = {"WWW-Authenticate": "Bearer"},
+        headers: dict[str, str] | None = None,
     ) -> None:
         """
-        A HTTPException.
+        Initialize a PermissionErrorException.
 
         Parameters
         ----------
@@ -28,6 +24,9 @@ class PermissionErrorException(HTTPException):
         headers : _type_, optional
             Response headers, by default {"WWW-Authenticate": "Bearer"}
         """
+        if headers is None:
+            headers = {"WWW-Authenticate": "Bearer"}
+
         super().__init__(status_code=status_code, detail=detail, headers=headers)
 
 
@@ -38,10 +37,10 @@ class TokenErrorException(HTTPException):
         self,
         status_code: int,
         detail: str,
-        headers: dict[str, str] | None = {"WWW-Authenticate": "Bearer"},
+        headers: dict[str, str] | None = None,
     ) -> None:
         """
-        A HTTPException.
+        Initialize a TokenErrorException.
 
         Parameters
         ----------
@@ -52,4 +51,7 @@ class TokenErrorException(HTTPException):
         headers : _type_, optional
             Response headers, by default {"WWW-Authenticate": "Bearer"}
         """
+        if headers is None:
+            headers = {"WWW-Authenticate": "Bearer"}
+
         super().__init__(status_code=status_code, detail=detail, headers=headers)

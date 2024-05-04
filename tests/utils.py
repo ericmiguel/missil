@@ -1,6 +1,5 @@
-import warnings
-
 from functools import wraps
+import warnings
 
 
 def ignore_warnings(f):

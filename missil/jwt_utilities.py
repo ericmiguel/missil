@@ -47,18 +47,18 @@ def decode_jwt_token(
     """
     try:
         decoded_token = jwt.decode(token, secret_key, algorithms=algorithm)
-    except ExpiredSignatureError:
+    except ExpiredSignatureError as ese:
         raise TokenErrorException(
             status.HTTP_403_FORBIDDEN, "The token signature has expired."
-        )
-    except JWTClaimsError:
+        ) from ese
+    except JWTClaimsError as jce:
         raise TokenErrorException(
             status.HTTP_403_FORBIDDEN, "The token claim is invalid."
-        )
-    except JWTError:  # generalist exception handler
+        ) from jce
+    except JWTError as je:  # generalist exception handler
         raise TokenErrorException(
             status.HTTP_403_FORBIDDEN, "The token signature is invalid."
-        )
+        ) from je
 
     return decoded_token
 
@@ -67,7 +67,7 @@ def encode_jwt_token(
     claims: dict[str, Any],
     secret: str,
     exp: int,
-    base: datetime = datetime.now(timezone.utc),
+    base: datetime | None = None,
     algorithm: str = "HS256",
 ) -> str:
     """
@@ -92,6 +92,9 @@ def encode_jwt_token(
     str
         _description_
     """
+    if base is None:
+        base = datetime.now(timezone.utc)
+
     to_encode = claims.copy()
     to_encode.update({"exp": base + timedelta(exp)})
     return jwt.encode(to_encode, key=secret, algorithm=algorithm)
