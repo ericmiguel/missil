@@ -117,9 +117,7 @@ class TokenBearer:
 class CookieTokenBearer(TokenBearer):
     """Read JWT token from http cookies."""
 
-    async def __call__(
-        self, request: Request, *args: Any, **kwds: Any
-    ) -> dict[str, int]:
+    async def __call__(self, request: Request) -> dict[str, int]:
         """Fastapi FastAPIDependsFunc will call this method."""
         token = self.get_token_from_cookies(request)
         return self.decode_jwt(token)
@@ -128,9 +126,7 @@ class CookieTokenBearer(TokenBearer):
 class HTTPTokenBearer(TokenBearer):
     """Read JWT token from the request header."""
 
-    async def __call__(
-        self, request: Request, *args: Any, **kwds: Any
-    ) -> dict[str, int]:
+    async def __call__(self, request: Request) -> dict[str, int]:
         """Fastapi FastAPIDependsFunc will call this method."""
         token = self.get_token_from_header(request)
         return self.decode_jwt(token)
