@@ -14,7 +14,7 @@ class PermissionErrorException(HTTPException):
         self,
         status_code: int,
         detail: str,
-        headers: dict[str, str] | None = {"WWW-Authenticate": "Bearer"},
+        headers: dict[str, str] | None = None,
     ) -> None:
         """
         A HTTPException.
@@ -28,6 +28,9 @@ class PermissionErrorException(HTTPException):
         headers : _type_, optional
             Response headers, by default {"WWW-Authenticate": "Bearer"}
         """
+        if headers is None:
+            headers = {"WWW-Authenticate": "Bearer"}
+
         super().__init__(status_code=status_code, detail=detail, headers=headers)
 
 
@@ -38,7 +41,7 @@ class TokenErrorException(HTTPException):
         self,
         status_code: int,
         detail: str,
-        headers: dict[str, str] | None = {"WWW-Authenticate": "Bearer"},
+        headers: dict[str, str] | None = None,
     ) -> None:
         """
         A HTTPException.
@@ -52,4 +55,7 @@ class TokenErrorException(HTTPException):
         headers : _type_, optional
             Response headers, by default {"WWW-Authenticate": "Bearer"}
         """
+        if headers is None:
+            headers = {"WWW-Authenticate": "Bearer"}
+
         super().__init__(status_code=status_code, detail=detail, headers=headers)
