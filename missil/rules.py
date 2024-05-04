@@ -56,20 +56,33 @@ class Rule(FastAPIDependsClass):
         """Allows Missil to pass a FastAPI dependency that gets correctly evaluated."""
 
         def check_user_permissions(
-            claims: Annotated[dict[str, int], FastAPIDependsFunc(self.bearer)],
-        ) -> None:
+            claims: Annotated[
+                tuple[
+                    dict[str, Any],  ## full claims
+                    dict[str, int],  ## user permissions
+                ],
+                FastAPIDependsFunc(self.bearer),
+            ],
+        ) -> dict[str, Any]:
             """
             Run JWT claims against an declared endpoint rule.
 
             If claims contains the asked business area and sufficient access level,
-            the endpoint access is granted to the user.
+            the endpoint access is granted to the user and the full claims are returned.
 
             Parameters
             ----------
-            claims : Annotated[dict[str, int], FastAPIDependsFunc
+            claims : Annotated[
+                    tuple[
+                        dict[str, Any],
+                        dict[str, int]
+                    ],
+                    FastAPIDependsFunc
+                ]
+
                 Content decoded from a JWT Token, obtained after FastAPI resolves
-                the TokenBearer dependency. Missil expects an dict using the
-                following structure:
+                the TokenBearer dependency. Missil expects a permission dict like the
+                following example structure:
 
                 ```python
                 {
@@ -87,17 +100,19 @@ class Rule(FastAPIDependsClass):
             PermissionErrorException
                 Insufficient access level.
             """
-            if self.area not in claims:
+            if self.area not in claims[1]:
                 raise PermissionErrorException(
                     status.HTTP_403_FORBIDDEN, f"'{self.area}' not in user permissions."
                 )
 
-            if not claims[self.area] >= self.level:
+            if not claims[1][self.area] >= self.level:
                 raise PermissionErrorException(
                     status.HTTP_403_FORBIDDEN,
                     "insufficient access level: "
-                    f"({claims[self.area]}/{self.level}) on {self.area}.",
+                    f"({claims[1][self.area]}/{self.level}) on {self.area}.",
                 )
+
+            return claims[0]
 
         return check_user_permissions
 
