@@ -1,5 +1,8 @@
 """Missil sample usage."""
 
+from typing import Annotated
+from typing import Any
+
 from fastapi import FastAPI
 from fastapi import Response
 
@@ -64,6 +67,14 @@ def finances_read() -> dict[str, str]:
 def finances_write() -> dict[str, str]:
     """Require write permission on finances."""
     return {"msg": "you have permission to perform write actions on finances!"}
+
+
+@app.get("/user-profile", dependencies=[bas["it"].READ])
+def get_user_profile(
+    user_profile: Annotated[dict[str, Any], bas["it"].READ],
+) -> dict[str, Any]:
+    """Require read permission on it."""
+    return user_profile
 
 
 @finances_read_router.get("/finances/read/router")
