@@ -5,6 +5,7 @@ copyright: Copyright &copy; 2024 Eric Miguel
 
 theme:
     name: material
+    logo: assets/logo/logo_icon.png
     palette:
         - media: "(prefers-color-scheme: light)"
           scheme: default
