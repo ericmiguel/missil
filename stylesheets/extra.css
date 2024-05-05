@@ -1,0 +1,12 @@
+@media (min-width: 1220px) {
+  /*  Navigation sidebar */
+  .md-sidebar--primary {
+    display: none;
+  }
+}
+
+:root {
+  --md-primary-fg-color:        #288d0a;
+  --md-primary-fg-color--light: #288d0a;
+  --md-primary-fg-color--dark:  #288d0a;
+}
