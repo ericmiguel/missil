@@ -1,5 +1,5 @@
 <p align="center">
-  <a href="https://ericmiguel.github.io/missil"><img src="logo/logo_small.png" alt="Missil"></a>
+  <a href="https://ericmiguel.github.io/missil"><img src="assets/logo/logo_small.png" alt="Missil"></a>
 </p>
 <p align="center">
     <em>Simple <a href="https://fastapi.tiangolo.com/">FastAPI</a> declarative endpoint-level access control, somewhat inspired by <a href="https://docs.pylonsproject.org/projects/pyramid/en/latest/narr/security.html">Pyramid</a>.</em>
