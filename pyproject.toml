@@ -1,6 +1,6 @@
 [project]
 name = "missil"
-version = "0.1.61b"
+version = "0.1.0"
 description = "Simple FastAPI declarative endpoint-level access control."
 authors = [{ name = "Eric Miguel", email = "eric.mrib@gmail.com" }]
 classifiers = [
