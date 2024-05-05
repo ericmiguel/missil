@@ -1,4 +1,7 @@
-/*  Navigation sidebar */
-.md-sidebar--primary {
-    display: none
+@media (min-width: 1220px) {
+  /*  Navigation sidebar */
+  .md-sidebar--primary {
+    display: none;
   }
+}
+
