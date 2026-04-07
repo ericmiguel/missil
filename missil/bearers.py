@@ -1,5 +1,7 @@
 """JWT token obtaining via dependency injection."""
 
+from abc import ABC
+from abc import abstractmethod
 from typing import Any
 
 from fastapi import Request
@@ -10,7 +12,7 @@ from missil.codec import decode_jwt_token
 from missil.exceptions import TokenValidationException
 
 
-class TokenSource:
+class TokenSource(ABC):
     """
     Abstract base for JWT token extraction and decoding.
 
@@ -123,6 +125,10 @@ class TokenSource:
                 f"'{self.user_permissions_key}'",
             ) from ke
         return user_permissions
+
+    @abstractmethod
+    async def __call__(self, request: Request) -> tuple[dict[str, Any], dict[str, int]]:
+        """Resolve the JWT token from a request and return claims and permissions."""
 
 
 class CookieTokenBearer(TokenSource):
