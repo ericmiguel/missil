@@ -1,10 +1,12 @@
 """Missil custom exceptions."""
 
+import warnings
+
 from fastapi import HTTPException
 
 
-class PermissionErrorException(HTTPException):
-    """HTTP Exception you can raise to show on permission-related errors."""
+class PermissionDeniedException(HTTPException):
+    """HTTP Exception raised on permission-related errors."""
 
     def __init__(
         self,
@@ -13,7 +15,7 @@ class PermissionErrorException(HTTPException):
         headers: dict[str, str] | None = None,
     ) -> None:
         """
-        Initialize a PermissionErrorException.
+        Initialize a PermissionDeniedException.
 
         Parameters
         ----------
@@ -21,7 +23,7 @@ class PermissionErrorException(HTTPException):
             HTTP status code.
         detail : str
             Exception description.
-        headers : _type_, optional
+        headers : dict[str, str], optional
             Response headers, by default {"WWW-Authenticate": "Bearer"}
         """
         if headers is None:
@@ -30,8 +32,8 @@ class PermissionErrorException(HTTPException):
         super().__init__(status_code=status_code, detail=detail, headers=headers)
 
 
-class TokenErrorException(HTTPException):
-    """HTTP Exception you can raise to show on JWT token-related errors."""
+class TokenValidationException(HTTPException):
+    """HTTP Exception raised on JWT token-related errors."""
 
     def __init__(
         self,
@@ -40,7 +42,7 @@ class TokenErrorException(HTTPException):
         headers: dict[str, str] | None = None,
     ) -> None:
         """
-        Initialize a TokenErrorException.
+        Initialize a TokenValidationException.
 
         Parameters
         ----------
@@ -48,10 +50,29 @@ class TokenErrorException(HTTPException):
             HTTP status code.
         detail : str
             Exception description.
-        headers : _type_, optional
+        headers : dict[str, str], optional
             Response headers, by default {"WWW-Authenticate": "Bearer"}
         """
         if headers is None:
             headers = {"WWW-Authenticate": "Bearer"}
 
         super().__init__(status_code=status_code, detail=detail, headers=headers)
+
+
+_DEPRECATED: dict[str, str] = {
+    "PermissionErrorException": "PermissionDeniedException",
+    "TokenErrorException": "TokenValidationException",
+}
+
+
+def __getattr__(name: str) -> object:
+    if name in _DEPRECATED:
+        new_name = _DEPRECATED[name]
+        warnings.warn(
+            f"'{name}' is deprecated and will be removed in a future version. "
+            f"Use '{new_name}' instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return globals()[new_name]
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
