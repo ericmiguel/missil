@@ -1,21 +1,21 @@
 """JWT token obtaining via dependency injection."""
 
 from typing import Any
+import warnings
 
 from fastapi import Request
 from fastapi import status
 
-from missil.exceptions import TokenErrorException
+from missil.exceptions import TokenValidationException
 from missil.jwt_utilities import decode_jwt_token
 
 
-class TokenBearer:
+class TokenSource:
     """
-    Parent class encapsulating JWT token obtaining and decoding.
+    Abstract base for JWT token extraction and decoding.
 
-    Shouldn't be used as a FastAPI dependency, since the __call__ method returns None
-    (and is herefore declared just to avoid code checking alerts), but can be used as
-    a parent class to create customized token procedures.
+    Not intended to be used directly as a FastAPI dependency. Subclass it
+    to implement a custom token extraction strategy.
     """
 
     def __init__(
@@ -26,39 +26,37 @@ class TokenBearer:
         algorithms: str | list[str] = "HS256",
     ):
         """
-        JWT token obtaining and decoding.
+        Configure JWT token extraction and decoding.
 
         Parameters
         ----------
         token_key : str
-            Name of the header or http cookie key where the token bearing user
-            permissions is stored.
+            Name of the header or cookie key that carries the JWT token.
         secret_key : str
-            Key used to decode the JWT token. See Python-jose docs for more details.
+            Secret key used to decode the signed token.
         user_permissions_key : str
-            Key name of the object specifying user permissions on the
-            decoded JWT token. Example:
+            Key inside the decoded JWT payload that holds the permissions dict.
+            Example payload:
 
-            Supposing the following decoded token claim:
             ```python
             {
                 "username": "John Doe",
-                "permissions": {  # user_permissions_key
+                "permissions": {  # user_permissions_key = "permissions"
                     "finances": 0,
-                    "it": 0,
+                    "it": 1,
                 },
             }
             ```
 
         algorithms : str | list[str], optional
-            JWT token decode algorithm(s), by default "HS256". See Python-jose docs
-            for more details.
+            JWT decoding algorithm(s), by default "HS256".
+            See python-jose docs for supported values.
         """
         if not user_permissions_key:
             raise ValueError(
                 "user_permissions_key is required. "
                 "Pass the JWT claim key that holds the permissions dict, "
-                "e.g. TokenBearer(..., user_permissions_key='userPermissions')."
+                "e.g. TokenSource(..., user_permissions_key='userPermissions')."
             )
         self.token_key = token_key
         self.token_secret_key = secret_key
@@ -79,7 +77,7 @@ class TokenBearer:
         token = request.cookies.get(self.token_key)
 
         if not token:
-            raise TokenErrorException(
+            raise TokenValidationException(
                 status.HTTP_403_FORBIDDEN,
                 f"Token not found on request cookies using key '{self.token_key}'",
             )
@@ -91,7 +89,7 @@ class TokenBearer:
         token = request.headers.get(self.token_key)
 
         if not token:
-            raise TokenErrorException(
+            raise TokenValidationException(
                 status.HTTP_403_FORBIDDEN,
                 f"Token not found on request headers using key '{self.token_key}'",
             )
@@ -120,7 +118,7 @@ class TokenBearer:
         try:
             user_permissions: dict[str, int] = decoded_token[self.user_permissions_key]
         except KeyError as ke:
-            raise TokenErrorException(
+            raise TokenValidationException(
                 401,
                 f"User permissions not found at token key "
                 f"'{self.user_permissions_key}'",
@@ -128,35 +126,55 @@ class TokenBearer:
         return user_permissions
 
 
-class CookieTokenBearer(TokenBearer):
+class CookieTokenBearer(TokenSource):
     """Read JWT token from http cookies."""
 
     async def __call__(self, request: Request) -> tuple[dict[str, Any], dict[str, int]]:
-        """Fastapi FastAPIDependsFunc will call this method."""
+        """FastAPI will call this method when resolving the dependency."""
         decoded_token = self.decode_from_cookies(request)
         user_permissions = self.get_user_permissions(decoded_token)
         return decoded_token, user_permissions
 
 
-class HTTPTokenBearer(TokenBearer):
-    """Read JWT token from the request header."""
+class HeaderTokenBearer(TokenSource):
+    """Read JWT token from the Authorization request header."""
 
     async def __call__(self, request: Request) -> tuple[dict[str, Any], dict[str, int]]:
-        """Fastapi FastAPIDependsFunc will call this method."""
+        """FastAPI will call this method when resolving the dependency."""
         decoded_token = self.decode_from_header(request)
         user_permissions = self.get_user_permissions(decoded_token)
         return decoded_token, user_permissions
 
 
-class FlexibleTokenBearer(TokenBearer):
-    """Tries to read the token from the cookies or from request headers."""
+class FallbackTokenBearer(TokenSource):
+    """Try to read the token from cookies, falling back to the request header."""
 
     async def __call__(self, request: Request) -> tuple[dict[str, Any], dict[str, int]]:
-        """Fastapi FastAPIDependsFunc will call this method."""
+        """FastAPI will call this method when resolving the dependency."""
         try:
             decoded_token = self.decode_from_cookies(request)
-        except TokenErrorException:
+        except TokenValidationException:
             decoded_token = self.decode_from_header(request)
 
         user_permissions = self.get_user_permissions(decoded_token)
         return decoded_token, user_permissions
+
+
+_DEPRECATED: dict[str, str] = {
+    "TokenBearer": "TokenSource",
+    "HTTPTokenBearer": "HeaderTokenBearer",
+    "FlexibleTokenBearer": "FallbackTokenBearer",
+}
+
+
+def __getattr__(name: str) -> object:
+    if name in _DEPRECATED:
+        new_name = _DEPRECATED[name]
+        warnings.warn(
+            f"'{name}' is deprecated and will be removed in a future version. "
+            f"Use '{new_name}' instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return globals()[new_name]
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
