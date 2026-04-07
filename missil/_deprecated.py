@@ -1,8 +1,8 @@
 """Internal helper for module-level deprecation warnings."""
 
-import warnings
 from collections.abc import Callable
 from typing import Any
+import warnings
 
 
 def make_deprecated_getattr(

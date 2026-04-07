@@ -1,7 +1,6 @@
 """Missil core access control: AccessRule, Scope, and permission level constants."""
 
 from collections.abc import Callable
-from typing import TYPE_CHECKING
 from typing import Annotated
 from typing import Any
 
@@ -21,6 +20,10 @@ DENY = -1  # reserved; raises NotImplementedError if used as an AccessRule level
 
 class AccessRule(FastAPIDependsClass):
     """FastAPI dependency that enforces an endpoint-level access rule."""
+
+    area: str
+    level: int
+    bearer: TokenSource
 
     def __init__(
         self,
@@ -46,20 +49,25 @@ class AccessRule(FastAPIDependsClass):
         use_cache : bool, optional
             FastAPI Depends cache parameter, by default True.
         """
-        self.area = area
-        self.level = level
-        self.bearer = bearer
-        self.use_cache = use_cache
-
         if level == DENY:
             raise NotImplementedError(
                 "DENY rules are not yet implemented. "
                 "Use PermissionDeniedException to block access unconditionally."
             )
 
-    @property
-    def dependency(self) -> Callable[..., Any] | None:
-        """Allows Missil to pass a FastAPI dependency that gets correctly evaluated."""
+        # FastAPIDependsClass became a frozen dataclass in FastAPI 0.115+;
+        # object.__setattr__ is the standard way to set fields on frozen instances.
+        # Note: "dependency" is intentionally not set here — it's provided by the
+        # property below. "scope" uses the dataclass default (None).
+        object.__setattr__(self, "area", area)
+        object.__setattr__(self, "level", level)
+        object.__setattr__(self, "bearer", bearer)
+        object.__setattr__(self, "use_cache", use_cache)
+        object.__setattr__(self, "scope", None)
+        object.__setattr__(self, "dependency", self._make_dependency())
+
+    def _make_dependency(self) -> Callable[..., Any]:
+        """Build the FastAPI-injectable permission-checking callable."""
 
         def check_user_permissions(
             claims: Annotated[
@@ -104,16 +112,6 @@ class AccessRule(FastAPIDependsClass):
             return claims[0]
 
         return check_user_permissions
-
-    if TYPE_CHECKING:
-
-        @dependency.setter
-        def dependency(self, _: Any) -> None:
-            """
-            Only declared to avoid type checking errors.
-
-            Mypy: cannot override writeable attribute with read-only property.
-            """
 
 
 class Scope:
