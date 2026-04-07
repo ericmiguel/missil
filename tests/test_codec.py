@@ -6,7 +6,7 @@ import logging
 from jose import jwt
 import pytest
 
-from missil import jwt_utilities
+from missil import codec as jwt_utilities
 from missil.exceptions import TokenValidationException
 from tests.utils import ignore_warnings
 

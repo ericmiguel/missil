@@ -1,0 +1,101 @@
+"""JWT token encoding and decoding."""
+
+from datetime import datetime
+from datetime import timedelta
+from datetime import timezone
+from typing import Any
+
+from fastapi import status
+from jose import ExpiredSignatureError
+from jose import JWTError
+from jose import jwt
+from jose.exceptions import JWTClaimsError
+
+from missil.exceptions import TokenValidationException
+
+
+def decode_jwt_token(
+    token: str, secret_key: str, algorithms: str | list[str] = "HS256"
+) -> dict[str, Any]:
+    """
+    Decode a JWT Token using Python-jose.
+
+    Parameters
+    ----------
+    token : str
+        Token to be decoded.
+    secret_key : str
+        Secret key to decode the signed token.
+    algorithms : str | list[str]
+        Decoding algorithm(s). See Python-jose docs for more details.
+
+    Returns
+    -------
+    dict[str, Any]
+        Decoded claims.
+
+    Raises
+    ------
+    TokenValidationException
+        The token signature has expired.
+    TokenValidationException
+        The token claim is invalid.
+    TokenValidationException
+        Generalist exception. The token signature is invalid.
+    TokenValidationException
+        Most generalist exception. The token is invalid.
+    """
+    algs: list[str] = [algorithms] if isinstance(algorithms, str) else list(algorithms)
+    try:
+        decoded_token = jwt.decode(token, secret_key, algorithms=algs)
+    except ExpiredSignatureError as ese:
+        raise TokenValidationException(
+            status.HTTP_403_FORBIDDEN, "The token signature has expired."
+        ) from ese
+    except JWTClaimsError as jce:
+        raise TokenValidationException(
+            status.HTTP_403_FORBIDDEN, "The token claim is invalid."
+        ) from jce
+    except JWTError as je:  # generalist exception handler
+        raise TokenValidationException(
+            status.HTTP_403_FORBIDDEN, "The token signature is invalid."
+        ) from je
+
+    return decoded_token
+
+
+def encode_jwt_token(
+    claims: dict[str, Any],
+    secret: str,
+    exp: int,
+    base: datetime | None = None,
+    algorithm: str = "HS256",
+) -> str:
+    """
+    Create a JWT token.
+
+    Parameters
+    ----------
+    claims : dict[str, Any]
+        Token user data.
+    secret : str
+        Secret key to sign the token.
+    exp : int, optional
+        Token expiration in hours.
+    base : datetime, optional
+        Token expiration base datetime, where the final datetime is given by
+        base + exp, by default datetime.now(timezone.utc)
+    algorithm : str, optional
+        Encode algorithm, by default "HS256"
+
+    Returns
+    -------
+    str
+        Encoded JWT token string.
+    """
+    if base is None:
+        base = datetime.now(timezone.utc)
+
+    to_encode = claims.copy()
+    to_encode.update({"exp": base + timedelta(hours=exp)})
+    return jwt.encode(to_encode, key=secret, algorithm=algorithm)
