@@ -1,16 +1,17 @@
-"""Missil core class: Rule, a FastAPI depedency."""
+"""Missil core class: AccessRule, a FastAPI dependency."""
 
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 from typing import Annotated
 from typing import Any
+import warnings
 
 from fastapi import Depends as FastAPIDependsFunc
 from fastapi import status
 from fastapi.params import Depends as FastAPIDependsClass
 
-from missil.bearers import TokenBearer
-from missil.exceptions import PermissionErrorException
+from missil.bearers import TokenSource
+from missil.exceptions import PermissionDeniedException
 
 
 READ = 0
@@ -20,33 +21,32 @@ DENY = (
 )  # reserved; not yet implemented — raises NotImplementedError if used as a Rule level
 
 
-class Rule(FastAPIDependsClass):
-    """FastAPI dependency to set and endpoint-level access rule."""
+class AccessRule(FastAPIDependsClass):
+    """FastAPI dependency that enforces an endpoint-level access rule."""
 
     def __init__(
         self,
         area: str,
         level: int,
-        bearer: TokenBearer,
+        bearer: TokenSource,
         use_cache: bool = True,
     ):
         """
         Grant or deny user access to an endpoint.
 
-        Access is granted through the verification of the business area and
-        verification of the access level expressed in the jwt token captured by
-        the declared TokenBearer object.
+        Access is granted by verifying that the JWT token claims include
+        the requested business area at the required access level.
 
         Parameters
         ----------
         area : str
-            Business area name, like 'financial' or 'human resources'.
+            Business area name, e.g. 'finances' or 'human_resources'.
         level : int
-            Access level: READ = 0 / WRITE = 1.
-        bearer : TokenBearer
-            JWT token source source. See Bearers module.
+            Required access level: READ = 0 / WRITE = 1.
+        bearer : TokenSource
+            JWT token source. See Bearers module.
         use_cache : bool, optional
-            FastAPI Depends class parameter, by default True.
+            FastAPI Depends cache parameter, by default True.
         """
         self.area = area
         self.level = level
@@ -56,7 +56,7 @@ class Rule(FastAPIDependsClass):
         if level == DENY:
             raise NotImplementedError(
                 "DENY rules are not yet implemented. "
-                "Use PermissionErrorException directly to block access unconditionally."
+                "Use PermissionDeniedException to block access unconditionally."
             )
 
     @property
@@ -73,48 +73,31 @@ class Rule(FastAPIDependsClass):
             ],
         ) -> dict[str, Any]:
             """
-            Run JWT claims against an declared endpoint rule.
+            Run JWT claims against a declared endpoint rule.
 
-            If claims contains the asked business area and sufficient access level,
-            the endpoint access is granted to the user and the full claims are returned.
+            If claims contains the requested business area and a sufficient
+            access level, the endpoint is accessible and the full claims are
+            returned.
 
             Parameters
             ----------
-            claims : Annotated[
-                    tuple[
-                        dict[str, Any],
-                        dict[str, int]
-                    ],
-                    FastAPIDependsFunc
-                ]
-
-                Content decoded from a JWT Token, obtained after FastAPI resolves
-                the TokenBearer dependency. Missil expects a permission dict like the
-                following example structure:
-
-                ```python
-                {
-                    'business area name': READ,
-                    'business area name': WRITE,
-                    'business area name 2': READ
-                    'business area name 2': WRITE
-                }
-                ```
+            claims : Annotated[tuple[dict[str, Any], dict[str, int]], ...]
+                Decoded JWT content obtained after FastAPI resolves the TokenSource dep.
 
             Raises
             ------
-            PermissionErrorException
+            PermissionDeniedException
                 Business area not listed on claims.
-            PermissionErrorException
+            PermissionDeniedException
                 Insufficient access level.
             """
             if self.area not in claims[1]:
-                raise PermissionErrorException(
+                raise PermissionDeniedException(
                     status.HTTP_403_FORBIDDEN, f"'{self.area}' not in user permissions."
                 )
 
             if not claims[1][self.area] >= self.level:
-                raise PermissionErrorException(
+                raise PermissionDeniedException(
                     status.HTTP_403_FORBIDDEN,
                     "insufficient access level: "
                     f"({claims[1][self.area]}/{self.level}) on {self.area}.",
@@ -135,16 +118,16 @@ class Rule(FastAPIDependsClass):
             """
 
 
-class Area:
+class Scope:
     """
-    Business area.
+    Business area grouping READ and WRITE access rules.
 
-    A business area instance holds up READ and WRITE rules as attributes, which
-    can be injected as a FastAPI endpoint dependency. For example:
+    A Scope instance holds pre-built AccessRule objects for each access level,
+    ready to be injected as FastAPI endpoint dependencies:
 
     ```python
     bearer = ...
-    finances = Area("finances", bearer)
+    finances = Scope("finances", bearer)
 
 
     @app.get("/finances/read", dependencies=[finances.READ])
@@ -152,83 +135,88 @@ class Area:
     ```
     """
 
-    def __init__(self, name: str, bearer: TokenBearer) -> None:
+    def __init__(self, name: str, bearer: TokenSource) -> None:
         """
-        Create a business area object.
+        Create a business area scope.
 
         Parameters
         ----------
         name : str
             Business area name.
-        bearer : TokenBearer
-            JWT token source source. See Bearers module.
+        bearer : TokenSource
+            JWT token source. See Bearers module.
         """
         self.name: str = name
         self.bearer = bearer
-        self.READ = Rule(self.name, READ, self.bearer)
-        self.WRITE = Rule(self.name, WRITE, self.bearer)
+        self.READ = AccessRule(self.name, READ, self.bearer)
+        self.WRITE = AccessRule(self.name, WRITE, self.bearer)
 
 
-def make_rules(bearer: TokenBearer, *areas: str) -> dict[str, Area]:
+def make_scopes(bearer: TokenSource, *areas: str) -> dict[str, Scope]:
     """
-    Create a Missil ruleset, conveniently.
+    Create a Missil ruleset from a token source and business area names.
 
-    A ruleset is a simple mapping bearing endpoint-appliable rule
-    bearers
-
-    ```python
-    rules: dict[str, Area] = make_rules(..., ...).
-    ```
-
-    Given a token source (see Bearers module) and some business
-    area names, like "it", "finances", "hr", this function will return something
-    lile the following:
+    Returns a dict mapping each area name to a :class:`Scope` with ready-to-use
+    READ and WRITE :class:`AccessRule` dependencies:
 
     ```python
-    {
-        'it': Area,
-        'finances': Area,
-        'hr': Area
-        ...
-    }
+    rules = make_scopes(bearer, "finances", "it", "hr")
+
+
+    @app.get("/finances", dependencies=[rules["finances"].READ])
+    def read_finances(): ...
     ```
-
-    So, one can pass like a FastAPI dependency, as shown in the following example:
-
-    ```python
-    @app.get("/items/{item_id}", dependencies=[rules["finances"].READ])
-    def read_item(item_id: int, q: Union[str, None] = None): ...
-    ```
-
-    See the sample API (sample/main.py) to a folly working usage example.
 
     Parameters
     ----------
-    bearer : TokenBearer
-        JWT token source source. See Bearers module.
+    bearer : TokenSource
+        JWT token source. See Bearers module.
+    *areas : str
+        Business area names to protect.
 
     Returns
     -------
-    dict[str, Area]
-        Dict containing endpoint-appliable rules.
+    dict[str, Scope]
+        Mapping of area name to Scope.
     """
-    return {area: Area(area, bearer) for area in areas}
+    return {area: Scope(area, bearer) for area in areas}
 
 
-def make_rule(bearer: TokenBearer, area: str) -> Area:
+def make_scope(bearer: TokenSource, area: str) -> Scope:
     """
-    Create a single Missil rule.
+    Create a single business area Scope.
 
     Parameters
     ----------
-    bearer : TokenBearer
-        JWT token source source. See Bearers module.
+    bearer : TokenSource
+        JWT token source. See Bearers module.
     area : str
-        A business area name.
+        Business area name.
 
     Returns
     -------
-    Area
-        Business area object, containing READ and WRITE rules.
+    Scope
+        Business area scope with READ and WRITE rules.
     """
-    return Area(area, bearer)
+    return Scope(area, bearer)
+
+
+_DEPRECATED: dict[str, str] = {
+    "Rule": "AccessRule",
+    "Area": "Scope",
+    "make_rule": "make_scope",
+    "make_rules": "make_scopes",
+}
+
+
+def __getattr__(name: str) -> object:
+    if name in _DEPRECATED:
+        new_name = _DEPRECATED[name]
+        warnings.warn(
+            f"'{name}' is deprecated and will be removed in a future version. "
+            f"Use '{new_name}' instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return globals()[new_name]
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

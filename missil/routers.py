@@ -4,6 +4,7 @@ from collections.abc import Callable
 from collections.abc import Sequence
 from enum import Enum
 from typing import Any
+import warnings
 
 from fastapi import APIRouter
 from fastapi.params import Depends as FastAPIDependsClass
@@ -15,17 +16,17 @@ from starlette.routing import BaseRoute
 from starlette.types import ASGIApp
 from starlette.types import Lifespan
 
-from missil.rules import Rule
+from missil.rules import AccessRule
 
 
-class QualifiedRouter(APIRouter):
-    """Fastapi router with rules parameter."""
+class ProtectedRouter(APIRouter):
+    """FastAPI router with built-in access rules applied to all its routes."""
 
     def __init__(
         self,
         *,
         prefix: str = "",
-        rules: Sequence[Rule],
+        rules: Sequence[AccessRule],
         tags: list[str | Enum] | None = None,
         dependencies: Sequence[FastAPIDependsClass] | None = None,
         default_response_class: type[Response] = JSONResponse,
@@ -44,26 +45,24 @@ class QualifiedRouter(APIRouter):
         generate_unique_id_function: Callable[[APIRoute], str] = generate_unique_id,
     ) -> None:
         """
-        FastAPI APIRouter class, plus an extra rules parameter.
+        FastAPI APIRouter with a mandatory access rules parameter.
 
-        It can be used to avoid multiple redudant rule declarations in same
-        business area endpoints.
+        All routes added to this router automatically require the declared rules,
+        avoiding repetition across endpoints that share the same access policy.
 
         Example:
 
         ```python
-        ba = missil.make_rules(bearer, "finances")  # business area
-        sample_rule_router = missil.QualifiedRouter(rules=[ba["finances"].READ])
+        scopes = missil.make_scopes(bearer, "finances")
+        router = missil.ProtectedRouter(rules=[scopes["finances"].READ])
         ```
 
-        All other original parameters are explicit declared to allow autocomplete and
-        intellisense-like code editor capabilities. They are exactly the same as in
-        FastAPI APIrouter class.
+        All other parameters are identical to FastAPI's APIRouter.
 
         Parameters
         ----------
-        rules : Sequence[Rule]
-            Sequence of Missil rule objects.
+        rules : Sequence[AccessRule]
+            One or more Missil AccessRule objects to enforce on every route.
         """
         super().__init__(
             prefix=prefix,
@@ -86,3 +85,21 @@ class QualifiedRouter(APIRouter):
         )
 
         self.dependencies += rules
+
+
+_DEPRECATED: dict[str, str] = {
+    "QualifiedRouter": "ProtectedRouter",
+}
+
+
+def __getattr__(name: str) -> object:
+    if name in _DEPRECATED:
+        new_name = _DEPRECATED[name]
+        warnings.warn(
+            f"'{name}' is deprecated and will be removed in a future version. "
+            f"Use '{new_name}' instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return globals()[new_name]
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
