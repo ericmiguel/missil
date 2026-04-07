@@ -1,13 +1,20 @@
 """Missil sample usage."""
 
 from typing import Annotated
-from typing import Any
 
 from fastapi import FastAPI
 from fastapi import Response
 
 import missil
+from missil import JWTClaims
 from missil.routers import ProtectedRouter
+
+
+class SampleClaims(JWTClaims, total=False):
+    """Application-specific JWT claims for this sample app."""
+
+    username: str
+    userPermissions: dict[str, int]
 
 
 app = FastAPI()
@@ -33,7 +40,7 @@ def read_root() -> dict[str, str]:
 @app.get("/set-cookies", status_code=200)
 def set_cookies(response: Response) -> dict[str, str]:
     """Just for example purposes."""
-    claims = {
+    claims: SampleClaims = {
         "username": "JohnDoe",
         # the key 'userPermissions' name must match the FallbackTokenBearer instance
         "userPermissions": {
@@ -70,8 +77,8 @@ def finances_write() -> dict[str, str]:
 
 @app.get("/user-profile", dependencies=[scopes["it"].READ])
 def get_user_profile(
-    user_profile: Annotated[dict[str, Any], scopes["it"].READ],
-) -> dict[str, Any]:
+    user_profile: Annotated[SampleClaims, scopes["it"].READ],
+) -> SampleClaims:
     """Require read permission on it."""
     return user_profile
 

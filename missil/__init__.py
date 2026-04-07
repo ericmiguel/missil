@@ -17,6 +17,7 @@ from missil.rules import AccessRule
 from missil.rules import Scope
 from missil.rules import make_scope
 from missil.rules import make_scopes
+from missil.types import JWTClaims
 
 
 __all__ = [
@@ -36,6 +37,7 @@ __all__ = [
     "READ",
     "WRITE",
     "DENY",
+    "JWTClaims",
 ]
 
 __getattr__ = make_deprecated_getattr(

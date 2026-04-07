@@ -11,6 +11,7 @@ from fastapi.params import Depends as FastAPIDependsClass
 from missil._deprecated import make_deprecated_getattr
 from missil.bearers import TokenSource
 from missil.exceptions import PermissionDeniedException
+from missil.types import JWTClaims
 
 
 READ = 0
@@ -72,12 +73,12 @@ class AccessRule(FastAPIDependsClass):
         def check_user_permissions(
             claims: Annotated[
                 tuple[
-                    dict[str, Any],  ## full claims
-                    dict[str, int],  ## user permissions
+                    JWTClaims,        ## full claims
+                    dict[str, int],   ## user permissions
                 ],
                 FastAPIDependsFunc(self.bearer),
             ],
-        ) -> dict[str, Any]:
+        ) -> JWTClaims:
             """
             Run JWT claims against a declared endpoint rule.
 
@@ -87,7 +88,7 @@ class AccessRule(FastAPIDependsClass):
 
             Parameters
             ----------
-            claims : Annotated[tuple[dict[str, Any], dict[str, int]], ...]
+            claims : Annotated[tuple[JWTClaims, dict[str, int]], ...]
                 Decoded JWT content obtained after FastAPI resolves the TokenSource dep.
 
             Raises
