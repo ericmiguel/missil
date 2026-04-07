@@ -11,7 +11,7 @@ from jose import JWTError
 from jose import jwt
 from jose.exceptions import JWTClaimsError
 
-from missil.exceptions import TokenErrorException
+from missil.exceptions import TokenValidationException
 
 
 def decode_jwt_token(
@@ -36,28 +36,28 @@ def decode_jwt_token(
 
     Raises
     ------
-    TokenErrorException
+    TokenValidationException
         The token signature has expired.
-    TokenErrorException
+    TokenValidationException
         The token claim is invalid.
-    TokenErrorException
+    TokenValidationException
         Generalist exception. The token signature is invalid.
-    TokenErrorException
+    TokenValidationException
         Most generalist exception. The token is invalid.
     """
     algs: list[str] = [algorithms] if isinstance(algorithms, str) else list(algorithms)
     try:
         decoded_token = jwt.decode(token, secret_key, algorithms=algs)
     except ExpiredSignatureError as ese:
-        raise TokenErrorException(
+        raise TokenValidationException(
             status.HTTP_403_FORBIDDEN, "The token signature has expired."
         ) from ese
     except JWTClaimsError as jce:
-        raise TokenErrorException(
+        raise TokenValidationException(
             status.HTTP_403_FORBIDDEN, "The token claim is invalid."
         ) from jce
     except JWTError as je:  # generalist exception handler
-        raise TokenErrorException(
+        raise TokenValidationException(
             status.HTTP_403_FORBIDDEN, "The token signature is invalid."
         ) from je
 
