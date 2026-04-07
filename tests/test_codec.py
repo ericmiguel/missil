@@ -3,7 +3,7 @@ from datetime import timedelta
 from datetime import timezone
 import logging
 
-from jose import jwt
+import jwt
 import pytest
 
 from missil import codec as jwt_utilities
@@ -172,7 +172,9 @@ def test_decode_jwt_token_invalid_signature(fake_secret_key, encoded_jwt_token):
 
 @ignore_warnings
 def test_decode_jwt_invalid_claim(secret_key, encoded_invalid_claims_jwt_token):
-    with pytest.raises(TokenValidationException, match="The token claim is invalid."):
+    with pytest.raises(
+        TokenValidationException, match="The token signature is invalid"
+    ):
         jwt_utilities.decode_jwt_token(encoded_invalid_claims_jwt_token, secret_key)
 
 
