@@ -22,8 +22,8 @@ class TokenBearer:
         self,
         token_key: str,
         secret_key: str,
-        user_permissions_key: str | None = None,
-        algorithms: str = "HS256",
+        user_permissions_key: str,
+        algorithms: str | list[str] = "HS256",
     ):
         """
         JWT token obtaining and decoding.
@@ -35,9 +35,9 @@ class TokenBearer:
             permissions is stored.
         secret_key : str
             Key used to decode the JWT token. See Python-jose docs for more details.
-        user_permissions_key : str | None, optional
+        user_permissions_key : str
             Key name of the object specifying user permissions on the
-            decoded JWT token, by default None. Example:
+            decoded JWT token. Example:
 
             Supposing the following decoded token claim:
             ```python
@@ -50,19 +50,27 @@ class TokenBearer:
             }
             ```
 
-        algorithms : str, optional
-            JWT token decode algorithm, by default "HS256". See Python-jose docs
+        algorithms : str | list[str], optional
+            JWT token decode algorithm(s), by default "HS256". See Python-jose docs
             for more details.
         """
+        if not user_permissions_key:
+            raise ValueError(
+                "user_permissions_key is required. "
+                "Pass the JWT claim key that holds the permissions dict, "
+                "e.g. TokenBearer(..., user_permissions_key='userPermissions')."
+            )
         self.token_key = token_key
         self.token_secret_key = secret_key
-        self.algorithm = algorithms
+        self.algorithms: list[str] = (
+            [algorithms] if isinstance(algorithms, str) else list(algorithms)
+        )
         self.user_permissions_key = user_permissions_key
 
     def split_token_str(self, token: str, sep: str = " ") -> str:
         """Get only the token value from the source."""
         if "bearer" in token.lower():
-            token = token.split(sep)[-1]
+            token = token.split(sep, 1)[-1]
 
         return token
 
@@ -90,10 +98,10 @@ class TokenBearer:
 
         return self.split_token_str(token)
 
-    def decode_jwt(self, token: str) -> dict[str, int]:
-        """Decode a retrieved token value and return the user permissions."""
+    def decode_jwt(self, token: str) -> dict[str, Any]:
+        """Decode a retrieved token value and return the full JWT claims."""
         decoded_token = decode_jwt_token(
-            token, self.token_secret_key, algorithm=self.algorithm
+            token, self.token_secret_key, algorithms=self.algorithms
         )
         return decoded_token
 
@@ -109,23 +117,15 @@ class TokenBearer:
 
     def get_user_permissions(self, decoded_token: dict[str, Any]) -> dict[str, int]:
         """Get user permissions from a decoded token."""
-        if self.user_permissions_key:
-            try:
-                user_permissions: dict[str, int] = decoded_token[
-                    self.user_permissions_key
-                ]
-            except KeyError as ke:
-                raise TokenErrorException(
-                    401,
-                    (
-                        "User permissions not found at token key "
-                        f"'{self.user_permissions_key}'"
-                    ),
-                ) from ke
-            else:
-                return user_permissions
-
-        raise TokenErrorException(500, "User permissions key not provided.")
+        try:
+            user_permissions: dict[str, int] = decoded_token[self.user_permissions_key]
+        except KeyError as ke:
+            raise TokenErrorException(
+                401,
+                f"User permissions not found at token key "
+                f"'{self.user_permissions_key}'",
+            ) from ke
+        return user_permissions
 
 
 class CookieTokenBearer(TokenBearer):
@@ -157,10 +157,6 @@ class FlexibleTokenBearer(TokenBearer):
             decoded_token = self.decode_from_cookies(request)
         except TokenErrorException:
             decoded_token = self.decode_from_header(request)
-        except Exception as e:
-            raise TokenErrorException(
-                status.HTTP_417_EXPECTATION_FAILED, "Token not found."
-            ) from e
 
         user_permissions = self.get_user_permissions(decoded_token)
         return decoded_token, user_permissions
