@@ -1,8 +1,8 @@
 """Missil custom exceptions."""
 
-import warnings
-
 from fastapi import HTTPException
+
+from missil._deprecated import make_deprecated_getattr
 
 
 class PermissionDeniedException(HTTPException):
@@ -59,20 +59,11 @@ class TokenValidationException(HTTPException):
         super().__init__(status_code=status_code, detail=detail, headers=headers)
 
 
-_DEPRECATED: dict[str, str] = {
-    "PermissionErrorException": "PermissionDeniedException",
-    "TokenErrorException": "TokenValidationException",
-}
-
-
-def __getattr__(name: str) -> object:
-    if name in _DEPRECATED:
-        new_name = _DEPRECATED[name]
-        warnings.warn(
-            f"'{name}' is deprecated and will be removed in a future version. "
-            f"Use '{new_name}' instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return globals()[new_name]
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+__getattr__ = make_deprecated_getattr(
+    {
+        "PermissionErrorException": "PermissionDeniedException",
+        "TokenErrorException": "TokenValidationException",
+    },
+    globals(),
+    __name__,
+)

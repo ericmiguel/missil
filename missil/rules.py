@@ -1,24 +1,22 @@
-"""Missil core class: AccessRule, a FastAPI dependency."""
+"""Missil core access control: AccessRule, Scope, and permission level constants."""
 
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 from typing import Annotated
 from typing import Any
-import warnings
 
 from fastapi import Depends as FastAPIDependsFunc
 from fastapi import status
 from fastapi.params import Depends as FastAPIDependsClass
 
+from missil._deprecated import make_deprecated_getattr
 from missil.bearers import TokenSource
 from missil.exceptions import PermissionDeniedException
 
 
 READ = 0
 WRITE = 1
-DENY = (
-    -1
-)  # reserved; not yet implemented — raises NotImplementedError if used as a Rule level
+DENY = -1  # reserved; raises NotImplementedError if used as an AccessRule level
 
 
 class AccessRule(FastAPIDependsClass):
@@ -201,22 +199,13 @@ def make_scope(bearer: TokenSource, area: str) -> Scope:
     return Scope(area, bearer)
 
 
-_DEPRECATED: dict[str, str] = {
-    "Rule": "AccessRule",
-    "Area": "Scope",
-    "make_rule": "make_scope",
-    "make_rules": "make_scopes",
-}
-
-
-def __getattr__(name: str) -> object:
-    if name in _DEPRECATED:
-        new_name = _DEPRECATED[name]
-        warnings.warn(
-            f"'{name}' is deprecated and will be removed in a future version. "
-            f"Use '{new_name}' instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return globals()[new_name]
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+__getattr__ = make_deprecated_getattr(
+    {
+        "Rule": "AccessRule",
+        "Area": "Scope",
+        "make_rule": "make_scope",
+        "make_rules": "make_scopes",
+    },
+    globals(),
+    __name__,
+)

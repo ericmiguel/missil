@@ -1,13 +1,13 @@
 """JWT token obtaining via dependency injection."""
 
 from typing import Any
-import warnings
 
 from fastapi import Request
 from fastapi import status
 
+from missil._deprecated import make_deprecated_getattr
+from missil.codec import decode_jwt_token
 from missil.exceptions import TokenValidationException
-from missil.jwt_utilities import decode_jwt_token
 
 
 class TokenSource:
@@ -98,10 +98,9 @@ class TokenSource:
 
     def decode_jwt(self, token: str) -> dict[str, Any]:
         """Decode a retrieved token value and return the full JWT claims."""
-        decoded_token = decode_jwt_token(
+        return decode_jwt_token(
             token, self.token_secret_key, algorithms=self.algorithms
         )
-        return decoded_token
 
     def decode_from_cookies(self, request: Request) -> dict[str, Any]:
         """Get token from cookies and decode it."""
@@ -160,21 +159,12 @@ class FallbackTokenBearer(TokenSource):
         return decoded_token, user_permissions
 
 
-_DEPRECATED: dict[str, str] = {
-    "TokenBearer": "TokenSource",
-    "HTTPTokenBearer": "HeaderTokenBearer",
-    "FlexibleTokenBearer": "FallbackTokenBearer",
-}
-
-
-def __getattr__(name: str) -> object:
-    if name in _DEPRECATED:
-        new_name = _DEPRECATED[name]
-        warnings.warn(
-            f"'{name}' is deprecated and will be removed in a future version. "
-            f"Use '{new_name}' instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return globals()[new_name]
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+__getattr__ = make_deprecated_getattr(
+    {
+        "TokenBearer": "TokenSource",
+        "HTTPTokenBearer": "HeaderTokenBearer",
+        "FlexibleTokenBearer": "FallbackTokenBearer",
+    },
+    globals(),
+    __name__,
+)

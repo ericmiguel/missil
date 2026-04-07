@@ -4,7 +4,6 @@ from collections.abc import Callable
 from collections.abc import Sequence
 from enum import Enum
 from typing import Any
-import warnings
 
 from fastapi import APIRouter
 from fastapi.params import Depends as FastAPIDependsClass
@@ -16,6 +15,7 @@ from starlette.routing import BaseRoute
 from starlette.types import ASGIApp
 from starlette.types import Lifespan
 
+from missil._deprecated import make_deprecated_getattr
 from missil.rules import AccessRule
 
 
@@ -87,19 +87,8 @@ class ProtectedRouter(APIRouter):
         self.dependencies += rules
 
 
-_DEPRECATED: dict[str, str] = {
-    "QualifiedRouter": "ProtectedRouter",
-}
-
-
-def __getattr__(name: str) -> object:
-    if name in _DEPRECATED:
-        new_name = _DEPRECATED[name]
-        warnings.warn(
-            f"'{name}' is deprecated and will be removed in a future version. "
-            f"Use '{new_name}' instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return globals()[new_name]
-    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+__getattr__ = make_deprecated_getattr(
+    {"QualifiedRouter": "ProtectedRouter"},
+    globals(),
+    __name__,
+)
