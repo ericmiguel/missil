@@ -26,7 +26,7 @@ body:
                 required: true
               - label: I already checked if it is not related to Missil but to [FastAPI](https://github.com/tiangolo/fastapi).
                 required: true
-              - label: I already checked if it is not related to Missil but to [Python-Jose](https://github.com/mpdavis/python-jose).
+              - label: I already checked if it is not related to Missil but to [PyJWT](https://pyjwt.readthedocs.io/).
                 required: true
     - type: checkboxes
       id: help

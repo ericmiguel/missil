@@ -1,9 +1,8 @@
 # JWT Utilities
 
-Missil uses [python-jose](https://github.com/mpdavis/python-jose) as backend to
-offer JWT conveniences. These utilities are thin wrappers — you can use any JWT
-library you prefer for token issuance as long as the payload structure matches
-what your bearer expects.
+Missil uses [PyJWT](https://pyjwt.readthedocs.io/) as JWT backend.
+These utilities are thin wrappers — you can use any JWT library you prefer for
+token issuance as long as the payload structure matches what your bearer expects.
 
 ## Encode JWT Token
 

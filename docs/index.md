@@ -21,7 +21,7 @@
 
 ## Installation
 
-**Requirements:** Python 3.10+ · FastAPI 0.104.1+ · PyJWT 2.12.1+
+**Requirements:** Python 3.10+ · FastAPI 0.135.3+ · PyJWT 2.12.1+
 
 <!-- termynal -->
 
