@@ -36,16 +36,31 @@ def test_read_access(api_url, response_msg, test_app, bearer_token):
     [
         (
             "/finances/write",
-            "insufficient access level: (0/1) on finances.",
+            "you have permission to perform write actions on finances!",
         ),
-        ("/finances/write/router", "insufficient access level: (0/1) on finances."),
+        ("/finances/write/router", "finances write rights check via qualified router!"),
     ],
 )
 def test_write_access(api_url, response_msg, test_app, bearer_token):
     response = test_app.get(api_url, headers={"Authorization": bearer_token})
 
-    assert response.status_code == 403
-    assert response.json() == {"detail": response_msg}
+    assert response.status_code == 200
+    assert response.json() == {"msg": response_msg}
+
+
+@ignore_warnings
+@pytest.mark.parametrize(
+    "api_url, response_msg",
+    [
+        ("/finances/admin", "you have admin permission on finances!"),
+        ("/finances/admin/router", "finances admin rights check via qualified router!"),
+    ],
+)
+def test_admin_access(api_url, response_msg, test_app, bearer_token):
+    response = test_app.get(api_url, headers={"Authorization": bearer_token})
+
+    assert response.status_code == 200
+    assert response.json() == {"msg": response_msg}
 
 
 @ignore_warnings
