@@ -15,7 +15,7 @@ from missil.exceptions import TokenErrorException
 
 
 def decode_jwt_token(
-    token: str, secret_key: str, algorithm: str = "HS256"
+    token: str, secret_key: str, algorithms: str | list[str] = "HS256"
 ) -> dict[str, Any]:
     """
     Decode a JWT Token using Python-jose.
@@ -26,8 +26,8 @@ def decode_jwt_token(
         Token to be decoded.
     secret_key : str
         Secret key to decode the signed token.
-    algorithm : str
-        Decoding algoritgm. See Python-jose docs for more details.
+    algorithms : str | list[str]
+        Decoding algorithm(s). See Python-jose docs for more details.
 
     Returns
     -------
@@ -45,8 +45,9 @@ def decode_jwt_token(
     TokenErrorException
         Most generalist exception. The token is invalid.
     """
+    algs: list[str] = [algorithms] if isinstance(algorithms, str) else list(algorithms)
     try:
-        decoded_token = jwt.decode(token, secret_key, algorithms=algorithm)
+        decoded_token = jwt.decode(token, secret_key, algorithms=algs)
     except ExpiredSignatureError as ese:
         raise TokenErrorException(
             status.HTTP_403_FORBIDDEN, "The token signature has expired."
@@ -90,11 +91,11 @@ def encode_jwt_token(
     Returns
     -------
     str
-        _description_
+        Encoded JWT token string.
     """
     if base is None:
         base = datetime.now(timezone.utc)
 
     to_encode = claims.copy()
-    to_encode.update({"exp": base + timedelta(exp)})
+    to_encode.update({"exp": base + timedelta(hours=exp)})
     return jwt.encode(to_encode, key=secret, algorithm=algorithm)

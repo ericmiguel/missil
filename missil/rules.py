@@ -15,7 +15,9 @@ from missil.exceptions import PermissionErrorException
 
 READ = 0
 WRITE = 1
-DENY = -1  # TODO: will overlap READ and WRITE permissions, but not implemented yet
+DENY = (
+    -1
+)  # reserved; not yet implemented — raises NotImplementedError if used as a Rule level
 
 
 class Rule(FastAPIDependsClass):
@@ -50,6 +52,12 @@ class Rule(FastAPIDependsClass):
         self.level = level
         self.bearer = bearer
         self.use_cache = use_cache
+
+        if level == DENY:
+            raise NotImplementedError(
+                "DENY rules are not yet implemented. "
+                "Use PermissionErrorException directly to block access unconditionally."
+            )
 
     @property
     def dependency(self) -> Callable[..., Any] | None:
@@ -157,8 +165,8 @@ class Area:
         """
         self.name: str = name
         self.bearer = bearer
-        self.READ = Rule(self.name, 0, self.bearer)
-        self.WRITE = Rule(self.name, 1, self.bearer)
+        self.READ = Rule(self.name, READ, self.bearer)
+        self.WRITE = Rule(self.name, WRITE, self.bearer)
 
 
 def make_rules(bearer: TokenBearer, *areas: str) -> dict[str, Area]:

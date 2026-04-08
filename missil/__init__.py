@@ -12,6 +12,7 @@ from missil.routers import QualifiedRouter
 from missil.rules import DENY
 from missil.rules import READ
 from missil.rules import WRITE
+from missil.rules import Area
 from missil.rules import Rule
 from missil.rules import make_rule
 from missil.rules import make_rules
@@ -26,6 +27,7 @@ __all__ = [
     "CookieTokenBearer",
     "HTTPTokenBearer",
     "FlexibleTokenBearer",
+    "Area",
     "Rule",
     "make_rule",
     "make_rules",

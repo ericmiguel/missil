@@ -72,7 +72,10 @@ def encoded_jwt_token(
 ):
     to_encode = claims.copy()
     to_encode.update(
-        {"exp": token_valid_base_expiration + timedelta(timedelta_token_expiration)}
+        {
+            "exp": token_valid_base_expiration
+            + timedelta(hours=timedelta_token_expiration)
+        }
     )
     return jwt.encode(to_encode, secret_key, "HS256")
 
