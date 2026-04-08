@@ -4,7 +4,9 @@
 
 `ProtectedRouter` is a FastAPI [APIRouter](https://fastapi.tiangolo.com/reference/apirouter/)
 with a `rules` parameter. Use it to avoid repeating the same rule declaration on
-every endpoint of the same business area.
+every endpoint of the same business area. Rules passed to the router behave exactly
+like the [`AccessRule`](../reference/rules.md#accessrule) objects produced by
+[`Area`](access-control.md#declaring-areas-with-areasbase).
 
 ## Router-level vs endpoint-level rules
 
@@ -64,4 +66,8 @@ app.include_router(finances_router)
 
 ---
 
-See the [API Reference → Routers](../reference/routers.md) for the full class signature.
+**See also:**
+
+- [Access Control guide](access-control.md) — `AreasBase`, permission levels, `Role`
+- [Bearers guide](bearers.md) — bearer options and configuration
+- [API Reference → Routers](../reference/routers.md) — `ProtectedRouter`

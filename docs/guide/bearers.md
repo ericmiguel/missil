@@ -26,6 +26,7 @@ bearer = missil.TokenBearer(
     The value of `permissions_key` must exactly match the key used when issuing
     the token. If you sign tokens with `{"perms": {"finances": 1}}` but declare
     the bearer with `permissions_key="permissions"`, every request will fail.
+    See the [JWT guide](jwt.md#payload-structure) for the full payload structure.
 
 ## Token revocation
 
@@ -49,7 +50,7 @@ class RevokableBearer(missil.TokenBearer):
 jwt_bearer = RevokableBearer("Authorization", SECRET_KEY, "permissions")
 ```
 
-When `is_revoked` returns `True`, the bearer raises `TokenValidationException`
+When `is_revoked` returns `True`, the bearer raises [`TokenValidationException`](exceptions.md)
 with HTTP 403 before the permission check ever runs.
 
 !!! note
@@ -97,4 +98,8 @@ no serialization overhead.
 
 ---
 
-See the [API Reference → Bearers](../reference/bearers.md) for full class signatures.
+**See also:**
+
+- [Access Control guide](access-control.md) — declaring areas and protecting endpoints
+- [Exceptions guide](exceptions.md) — handling `TokenValidationException` and `PermissionDeniedException`
+- [API Reference → Bearers](../reference/bearers.md) — `TokenBearer`, `CookieTokenBearer`, `HeaderTokenBearer`, `JWTClaims`

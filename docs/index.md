@@ -33,9 +33,9 @@ Installed
 
 ## Why use Missil?
 
-Permission checks tend to look the same across every protected endpoint: extract the token, verify it, find the area, check the level. Missil moves all of that out of your route functions and into a single declarative line per endpoint — keeping your business logic clean and your access rules explicit and auditable at a glance.
+Permission checks tend to look the same across every protected endpoint: extract the [token](guide/jwt.md), verify it, find the area, check the level. Missil moves all of that out of your route functions and into a single declarative line per endpoint — keeping your business logic clean and your access rules explicit and auditable at a glance.
 
-It also goes beyond simple scope checks: because permissions are stored as numeric levels per business area, a single token can express fine-grained access across multiple areas of your application without requiring separate tokens or custom middleware.
+It also goes beyond simple scope checks: because permissions are stored as [numeric levels](guide/access-control.md#permission-levels) per business area, a single token can express fine-grained access across multiple areas of your application without requiring separate tokens or custom middleware.
 
 ## End-to-end example
 
@@ -46,10 +46,10 @@ from fastapi import FastAPI, Response
 app = FastAPI()
 SECRET_KEY = "..."
 
-# 1. Declare a bearer — reads token from cookie or Authorization header
+# 1. Declare a bearer — reads token from cookie or Authorization header (see Bearers guide)
 bearer = missil.TokenBearer("Authorization", SECRET_KEY, permissions_key="permissions")
 
-# 2. Declare business areas as typed attributes
+# 2. Declare business areas as typed attributes (see Access Control guide)
 class AppAreas(missil.AreasBase):
     finances: missil.Area
     it: missil.Area
@@ -79,7 +79,7 @@ def login(response: Response):
 
 Missil works in three steps:
 
-**1. Issue a JWT token** containing a permissions dict under a key of your choice:
+**1. Issue a [JWT token](guide/jwt.md)** containing a permissions dict under a key of your choice:
 
 ```python
 claims = {
@@ -92,13 +92,13 @@ claims = {
 token = missil.encode_jwt_token(claims, SECRET_KEY, expiration_hours=8)
 ```
 
-**2. Declare a bearer** that knows where to find the token and which key holds permissions:
+**2. Declare a [bearer](guide/bearers.md)** that knows where to find the token and which key holds permissions:
 
 ```python
 bearer = missil.TokenBearer("Authorization", SECRET_KEY, permissions_key="permissions")
 ```
 
-**3. Declare areas and protect endpoints:**
+**3. [Declare areas](guide/access-control.md#declaring-areas-with-areasbase) and protect endpoints:**
 
 ```python
 class AppAreas(missil.AreasBase):
@@ -116,12 +116,12 @@ def dashboard(): ...
 
 On every request, Missil extracts the token, decodes it, looks up the area in the
 permissions dict and checks that the user's level satisfies the required level.
-If not, it raises HTTP 403.
+If not, it raises [`PermissionDeniedException`](guide/exceptions.md) (HTTP 403).
 
 ### JWT payload structure
 
 Missil expects the JWT payload to include a dict under the key you passed as
-`permissions_key`. Each entry maps an area name to a numeric access level:
+`permissions_key` to the [bearer](guide/bearers.md#choosing-a-bearer). Each entry maps an area name to a numeric access level:
 
 ```json
 {
@@ -137,7 +137,7 @@ Missil expects the JWT payload to include a dict under the key you passed as
 
 !!! warning "Key name must match"
     The key name in the JWT payload (`"permissions"` above) must exactly match
-    the `permissions_key` argument passed to your bearer constructor.
+    the `permissions_key` argument passed to your [bearer constructor](guide/bearers.md#choosing-a-bearer).
 
 ### Permission Hierarchy
 
@@ -149,7 +149,7 @@ Missil expects the JWT payload to include a dict under the key you passed as
 
 Higher permission levels automatically satisfy lower requirements — a user with
 `ADMIN` access can reach `READ` and `WRITE` protected endpoints without needing
-separate permission entries.
+separate permission entries. See the [Access Control guide](guide/access-control.md#permission-levels) for details.
 
 ### Grouping rules with Role
 
@@ -167,7 +167,7 @@ See the [Access Control guide](guide/access-control.md#grouping-rules-with-role)
 
 ## Sending the token
 
-Depending on which bearer you chose, the client sends the token differently:
+Depending on which [bearer](guide/bearers.md#choosing-a-bearer) you chose, the client sends the token differently:
 
 === "Cookie (TokenBearer / CookieTokenBearer)"
 

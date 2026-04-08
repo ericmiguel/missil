@@ -13,7 +13,9 @@ catches and serializes them automatically — no extra configuration needed.
 ## Raising exceptions manually
 
 `PermissionDeniedException` can be raised directly in your own code to block
-access based on custom logic:
+access based on custom logic. In this example `areas.finances.READ` is an
+[`AccessRule`](access-control.md#declaring-areas-with-areasbase), and `AppClaims`
+is a subclass of [`JWTClaims`](bearers.md#working-with-jwt-claims):
 
 ```python
 from fastapi import status
@@ -57,4 +59,8 @@ async def token_validation_handler(request: Request, exc: TokenValidationExcepti
 
 ---
 
-See the [API Reference → Exceptions](../reference/exceptions.md) for full class signatures.
+**See also:**
+
+- [Access Control guide](access-control.md) — rules and areas that trigger these exceptions
+- [Bearers guide](bearers.md) — when `TokenValidationException` is raised during token extraction
+- [API Reference → Exceptions](../reference/exceptions.md) — `PermissionDeniedException`, `TokenValidationException`

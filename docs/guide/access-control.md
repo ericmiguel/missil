@@ -21,6 +21,7 @@ are created automatically and accessible as typed attributes.
 ```python
 import missil
 
+# See the Bearers guide for bearer options
 bearer = missil.TokenBearer("Authorization", SECRET_KEY, permissions_key="permissions")
 
 
@@ -78,4 +79,8 @@ def report(): ...
 
 ---
 
-See the [API Reference → Rules](../reference/rules.md) for full class signatures.
+**See also:**
+
+- [Bearers guide](bearers.md) — how to create and configure a bearer
+- [JWT guide](jwt.md) — payload structure and token issuance
+- [API Reference → Rules](../reference/rules.md) — `AreasBase`, `Area`, `AccessRule`, `Role`

@@ -40,3 +40,10 @@
     ```python
     finances = missil.Area("finances", bearer)
     ```
+
+---
+
+**See also:**
+
+- [Access Control guide](access-control.md) — full `AreasBase` usage guide
+- [API Reference → Rules](../reference/rules.md#make_area) — deprecated signatures
