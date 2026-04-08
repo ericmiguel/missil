@@ -49,11 +49,19 @@ extra:
 
 nav:
     - Introduction: index.md
-    - Rules: rules.md
-    - Bearers: bearers.md
-    - Routers: routers.md
-    - JWT utilities: jwt_utilities.md
-    - Exceptions: exceptions.md
+    - Guide:
+          - Access Control: guide/access-control.md
+          - Bearers: guide/bearers.md
+          - Routers: guide/routers.md
+          - JWT: guide/jwt.md
+          - Exceptions: guide/exceptions.md
+          - Migration: guide/migration.md
+    - API Reference:
+          - Rules: reference/rules.md
+          - Bearers: reference/bearers.md
+          - Routers: reference/routers.md
+          - JWT: reference/jwt.md
+          - Exceptions: reference/exceptions.md
 
 markdown_extensions:
     - pymdownx.highlight:

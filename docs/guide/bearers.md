@@ -60,24 +60,29 @@ with HTTP 403 before the permission check ever runs.
 ## Working with JWT claims
 
 Every bearer returns the decoded JWT payload as a `JWTClaims` dict. You can
-access it in endpoint parameters by annotating with your claims type:
+access it in endpoint parameters by annotating with the claims type:
 
 ```python
 from typing import Annotated
 import missil
 from missil import JWTClaims
 
+
 # Optional: subclass JWTClaims to add app-specific fields
 class AppClaims(JWTClaims, total=False):
     username: str
     permissions: dict[str, int]  # must match permissions_key
 
+
 jwt_bearer = missil.TokenBearer("Authorization", SECRET_KEY, "permissions")
+
 
 class AppAreas(missil.AreasBase):
     finances: missil.Area
 
+
 areas = AppAreas(jwt_bearer)
+
 
 @app.get("/profile", dependencies=[areas.finances.READ])
 def profile(user: Annotated[AppClaims, areas.finances.READ]) -> AppClaims:
@@ -90,19 +95,6 @@ def profile(user: Annotated[AppClaims, areas.finances.READ]) -> AppClaims:
 app-specific fields while keeping the object a plain `dict` at runtime —
 no serialization overhead.
 
-::: missil.JWTClaims
+---
 
-## TokenBearer
-
-Tries cookies first, falls back to the `Authorization` header. Recommended for
-most use cases.
-
-::: missil.TokenBearer
-
-## CookieTokenBearer
-
-::: missil.CookieTokenBearer
-
-## HeaderTokenBearer
-
-::: missil.HeaderTokenBearer
+See the [API Reference → Bearers](../reference/bearers.md) for full class signatures.

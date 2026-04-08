@@ -31,12 +31,13 @@ def report(user: Annotated[AppClaims, areas.finances.READ]) -> dict:
 
 ## Customizing the response format
 
-Register a FastAPI exception handler to override the default response:
+Register a FastAPI exception handler to override the default JSON response:
 
 ```python
 from fastapi import Request
 from fastapi.responses import JSONResponse
 from missil.exceptions import PermissionDeniedException, TokenValidationException
+
 
 @app.exception_handler(PermissionDeniedException)
 async def permission_denied_handler(request: Request, exc: PermissionDeniedException):
@@ -44,6 +45,7 @@ async def permission_denied_handler(request: Request, exc: PermissionDeniedExcep
         status_code=exc.status_code,
         content={"error": "forbidden", "message": exc.detail},
     )
+
 
 @app.exception_handler(TokenValidationException)
 async def token_validation_handler(request: Request, exc: TokenValidationException):
@@ -53,12 +55,6 @@ async def token_validation_handler(request: Request, exc: TokenValidationExcepti
     )
 ```
 
-## API Reference
+---
 
-## PermissionDeniedException
-
-::: missil.PermissionDeniedException
-
-## TokenValidationException
-
-::: missil.TokenValidationException
+See the [API Reference → Exceptions](../reference/exceptions.md) for full class signatures.

@@ -2,11 +2,11 @@
 
 ## ProtectedRouter
 
-FastAPI [APIRouter](https://fastapi.tiangolo.com/reference/apirouter/) with a `rules` parameter.
+`ProtectedRouter` is a FastAPI [APIRouter](https://fastapi.tiangolo.com/reference/apirouter/)
+with a `rules` parameter. Use it to avoid repeating the same rule declaration on
+every endpoint of the same business area.
 
-Use it to avoid repeating the same rule declaration on every endpoint of the same business area.
-
-### Router-level vs endpoint-level rules
+## Router-level vs endpoint-level rules
 
 Understanding when each rule fires is important:
 
@@ -15,10 +15,10 @@ Understanding when each rule fires is important:
 | `ProtectedRouter(rules=[...])` | **Every** route registered on this router |
 | `@router.get(..., dependencies=[...])` | Only that specific endpoint, **in addition** to router rules |
 
-This means endpoint-level rules stack on top of router rules — both must pass.
+Endpoint-level rules stack on top of router rules — both must pass.
 
-A common pattern is to set the minimum required level at the router (`READ`) and use
-endpoint-level dependencies to raise the bar for specific routes (`WRITE`, `ADMIN`):
+A common pattern is to set the minimum required level at the router (`READ`) and
+use endpoint-level dependencies to raise the bar for specific routes (`WRITE`, `ADMIN`):
 
 ```python
 import missil
@@ -27,10 +27,8 @@ from fastapi import FastAPI
 
 app = FastAPI()
 
-TOKEN_KEY = "Authorization"
 SECRET_KEY = "verysecuresecret"
-
-jwt_bearer = missil.HeaderTokenBearer(TOKEN_KEY, SECRET_KEY, "userPermissions")
+jwt_bearer = missil.HeaderTokenBearer("Authorization", SECRET_KEY, "userPermissions")
 
 
 class AppAreas(missil.AreasBase):
@@ -64,5 +62,6 @@ async def finances_admin_route() -> dict[str, str]:
 app.include_router(finances_router)
 ```
 
-::: missil.ProtectedRouter
+---
 
+See the [API Reference → Routers](../reference/routers.md) for the full class signature.

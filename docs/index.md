@@ -163,7 +163,7 @@ analyst = missil.Role(areas.finances.READ, areas.it.READ)
 def dashboard(): ...
 ```
 
-See the [Rules reference](rules.md#role) for full details.
+See the [Access Control guide](guide/access-control.md#grouping-rules-with-role) for full details.
 
 ## Sending the token
 
