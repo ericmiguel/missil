@@ -1,13 +1,20 @@
 """Missil sample usage."""
 
 from typing import Annotated
-from typing import Any
 
 from fastapi import FastAPI
 from fastapi import Response
 
 import missil
-from missil.routers import QualifiedRouter
+from missil import JWTClaims
+from missil.routers import ProtectedRouter
+
+
+class SampleClaims(JWTClaims, total=False):
+    """Application-specific JWT claims for this sample app."""
+
+    username: str
+    userPermissions: dict[str, int]
 
 
 app = FastAPI()
@@ -17,11 +24,11 @@ TOKEN_KEY = "Authorization"
 # openssl rand -hex 32
 SECRET_KEY = "2ef9451be5d149ceaf5be306b5aa03b41a0331218926e12329c5eeba60ed5cf0"
 
-bearer = missil.FlexibleTokenBearer(TOKEN_KEY, SECRET_KEY, "userPermissions")
-bas = missil.make_rules(bearer, "finances", "it", "other")  # business areas
+bearer = missil.FallbackTokenBearer(TOKEN_KEY, SECRET_KEY, "userPermissions")
+scopes = missil.make_scopes(bearer, "finances", "it", "other")
 
-finances_read_router = QualifiedRouter(rules=[bas["finances"].READ])
-finances_write_router = QualifiedRouter(rules=[bas["finances"].WRITE])
+finances_read_router = ProtectedRouter(rules=[scopes["finances"].READ])
+finances_write_router = ProtectedRouter(rules=[scopes["finances"].WRITE])
 
 
 @app.get("/")
@@ -33,10 +40,9 @@ def read_root() -> dict[str, str]:
 @app.get("/set-cookies", status_code=200)
 def set_cookies(response: Response) -> dict[str, str]:
     """Just for example purposes."""
-    claims = {
+    claims: SampleClaims = {
         "username": "JohnDoe",
-        # the key 'userPermissions' name must be the same as in the
-        # FlexibleTokenBearer instance
+        # the key 'userPermissions' name must match the FallbackTokenBearer instance
         "userPermissions": {
             "finances": missil.READ,
             "it": missil.WRITE,
@@ -57,22 +63,22 @@ def set_cookies(response: Response) -> dict[str, str]:
     return {"msg": "The Authorization token is stored as a cookie."}
 
 
-@app.get("/finances/read", dependencies=[bas["finances"].READ])
+@app.get("/finances/read", dependencies=[scopes["finances"].READ])
 def finances_read() -> dict[str, str]:
     """Require read permission on finances."""
     return {"msg": "you have permission to perform read actions on finances!"}
 
 
-@app.get("/finances/write", dependencies=[bas["finances"].WRITE])
+@app.get("/finances/write", dependencies=[scopes["finances"].WRITE])
 def finances_write() -> dict[str, str]:
     """Require write permission on finances."""
     return {"msg": "you have permission to perform write actions on finances!"}
 
 
-@app.get("/user-profile", dependencies=[bas["it"].READ])
+@app.get("/user-profile", dependencies=[scopes["it"].READ])
 def get_user_profile(
-    user_profile: Annotated[dict[str, Any], bas["it"].READ],
-) -> dict[str, Any]:
+    user_profile: Annotated[SampleClaims, scopes["it"].READ],
+) -> SampleClaims:
     """Require read permission on it."""
     return user_profile
 

@@ -3,11 +3,11 @@ from datetime import timedelta
 from datetime import timezone
 import logging
 
-from jose import jwt
+import jwt
 import pytest
 
-from missil import jwt_utilities
-from missil.exceptions import TokenErrorException
+from missil import codec as jwt_utilities
+from missil.exceptions import TokenValidationException
 from tests.utils import ignore_warnings
 
 
@@ -164,23 +164,31 @@ def test_decode_jwt_token(claims, secret_key, encoded_jwt_token):
 
 @ignore_warnings
 def test_decode_jwt_token_invalid_signature(fake_secret_key, encoded_jwt_token):
-    with pytest.raises(TokenErrorException, match="The token signature is invalid."):
+    with pytest.raises(
+        TokenValidationException, match="The token signature is invalid."
+    ):
         jwt_utilities.decode_jwt_token(encoded_jwt_token, fake_secret_key)
 
 
 @ignore_warnings
 def test_decode_jwt_invalid_claim(secret_key, encoded_invalid_claims_jwt_token):
-    with pytest.raises(TokenErrorException, match="The token claim is invalid."):
+    with pytest.raises(
+        TokenValidationException, match="The token signature is invalid"
+    ):
         jwt_utilities.decode_jwt_token(encoded_invalid_claims_jwt_token, secret_key)
 
 
 @ignore_warnings
 def test_decode_jwt_expired_token(secret_key, encoded_expired_jwt_token):
-    with pytest.raises(TokenErrorException, match="The token signature has expired."):
+    with pytest.raises(
+        TokenValidationException, match="The token signature has expired."
+    ):
         jwt_utilities.decode_jwt_token(encoded_expired_jwt_token, secret_key)
 
 
 @ignore_warnings
 def test_decode_jwt_invalid_token(secret_key, encoded_invalid_jwt_token):
-    with pytest.raises(TokenErrorException, match="The token signature is invalid."):
+    with pytest.raises(
+        TokenValidationException, match="The token signature is invalid."
+    ):
         jwt_utilities.decode_jwt_token(encoded_invalid_jwt_token, secret_key)
