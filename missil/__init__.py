@@ -16,6 +16,7 @@ from missil.rules import WRITE
 from missil.rules import AccessRule
 from missil.rules import Area
 from missil.rules import AreasBase
+from missil.rules import Role
 from missil.rules import make_area
 from missil.rules import make_areas
 from missil.types import JWTClaims
@@ -32,6 +33,7 @@ __all__ = [
     "TokenBearer",
     "Area",
     "AreasBase",
+    "Role",
     "AccessRule",
     "make_area",
     "make_areas",

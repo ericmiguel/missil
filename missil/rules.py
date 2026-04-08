@@ -1,6 +1,7 @@
-"""Missil core access control: AccessRule, Area, AreasBase, permission constants."""
+"""Missil core access control: AccessRule, Area, AreasBase, Role, permissions."""
 
 from collections.abc import Callable
+import inspect
 from typing import Annotated
 from typing import Any
 from typing import get_type_hints
@@ -193,6 +194,75 @@ class AreasBase:
         for name, annotation in hints.items():
             if annotation is Area:
                 setattr(self, name, Area(name, bearer))
+
+
+class Role(FastAPIDependsClass):
+    """
+    A named group of AccessRules that must all be satisfied for access to be granted.
+
+    Use a Role to avoid repeating the same set of rules across multiple endpoints.
+    Access is granted only when every constituent AccessRule passes:
+
+    ```python
+    bearer = missil.TokenBearer("Authorization", SECRET_KEY, "permissions")
+
+
+    class AppAreas(missil.AreasBase):
+        finances: missil.Area
+        it: missil.Area
+
+
+    areas = AppAreas(bearer)
+
+    analyst = missil.Role(areas.finances.READ, areas.it.READ)
+
+
+    @app.get("/dashboard", dependencies=[analyst])
+    def dashboard(): ...
+    ```
+
+    If any rule fails, FastAPI raises HTTP 403 before the endpoint is reached.
+    """
+
+    rules: tuple["AccessRule", ...]
+
+    def __init__(self, *rules: "AccessRule", use_cache: bool = True) -> None:
+        """
+        Create a role from one or more AccessRules.
+
+        Parameters
+        ----------
+        *rules : AccessRule
+            The access rules that must all pass for this role to be satisfied.
+        use_cache : bool, optional
+            FastAPI Depends cache parameter, by default True.
+        """
+        object.__setattr__(self, "rules", rules)
+        object.__setattr__(self, "use_cache", use_cache)
+        object.__setattr__(self, "scope", None)
+        object.__setattr__(self, "dependency", self._make_dependency())
+
+    def _make_dependency(self) -> Callable[..., Any]:
+        """Build the FastAPI-injectable callable that enforces all constituent rules."""
+        rules = self.rules
+
+        params = [
+            inspect.Parameter(
+                f"_rule_{i}",
+                inspect.Parameter.POSITIONAL_OR_KEYWORD,
+                default=FastAPIDependsFunc(rule.dependency),
+                annotation=JWTClaims,
+            )
+            for i, rule in enumerate(rules)
+        ]
+
+        def check_role(**kwargs: JWTClaims) -> JWTClaims:
+            """Enforce all role rules; return claims from the first resolved rule."""
+            return next(iter(kwargs.values()))
+
+        check_role.__signature__ = inspect.Signature(params)  # type: ignore[attr-defined]
+
+        return check_role
 
 
 def make_areas(bearer: TokenSource, *areas: str) -> dict[str, Area]:
