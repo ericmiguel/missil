@@ -36,15 +36,14 @@ class JWTClaims(TypedDict, total=False):
     configured on the bearer instance:
 
     ```python
-    bearer = missil.FallbackTokenBearer(
-        TOKEN_KEY, SECRET_KEY, permissions_key="scopes"
-    )
+    bearer = missil.TokenBearer(TOKEN_KEY, SECRET_KEY, permissions_key="scopes")
     ```
 
     Declare a subclass with a field of the same name:
 
     ```python
     from missil import JWTClaims
+
 
     class AppClaims(JWTClaims):
         username: str
@@ -54,8 +53,8 @@ class JWTClaims(TypedDict, total=False):
     Then annotate route parameters with the subclass:
 
     ```python
-    @app.get("/profile", dependencies=[scopes["it"].READ])
-    def profile(user: Annotated[AppClaims, scopes["it"].READ]) -> AppClaims:
+    @app.get("/profile", dependencies=[areas.finances.READ])
+    def profile(user: Annotated[AppClaims, areas.finances.READ]) -> AppClaims:
         username = user["username"]  # typed as str
         return user
     ```
