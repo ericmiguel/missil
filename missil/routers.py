@@ -53,8 +53,8 @@ class ProtectedRouter(APIRouter):
         Example:
 
         ```python
-        scopes = missil.make_scopes(bearer, "finances")
-        router = missil.ProtectedRouter(rules=[scopes["finances"].READ])
+        areas = missil.make_areas(bearer, "finances")
+        router = missil.ProtectedRouter(rules=[areas["finances"].READ])
         ```
 
         All other parameters are identical to FastAPI's APIRouter.

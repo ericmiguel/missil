@@ -138,8 +138,7 @@ class TokenSource(ABC):
         except KeyError as ke:
             raise TokenValidationException(
                 401,
-                f"User permissions not found at token key "
-                f"'{self.permissions_key}'",
+                f"User permissions not found at token key " f"'{self.permissions_key}'",
             ) from ke
         return user_permissions
 
@@ -168,7 +167,7 @@ class HeaderTokenBearer(TokenSource):
         return decoded_token, user_permissions
 
 
-class FallbackTokenBearer(TokenSource):
+class TokenBearer(TokenSource):
     """Try to read the token from cookies, falling back to the request header."""
 
     async def __call__(self, request: Request) -> tuple[JWTClaims, dict[str, int]]:
@@ -184,9 +183,9 @@ class FallbackTokenBearer(TokenSource):
 
 __getattr__ = make_deprecated_getattr(
     {
-        "TokenBearer": "TokenSource",
+        "FallbackTokenBearer": "TokenBearer",
+        "FlexibleTokenBearer": "TokenBearer",
         "HTTPTokenBearer": "HeaderTokenBearer",
-        "FlexibleTokenBearer": "FallbackTokenBearer",
     },
     globals(),
     __name__,

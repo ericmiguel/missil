@@ -1,11 +1,64 @@
 # Exceptions
 
-Missil custom exceptions.
+Both Missil exceptions are subclasses of FastAPI's `HTTPException`, so FastAPI
+catches and serializes them automatically — no extra configuration needed.
 
-## Permission Error Exception
+## When each exception is raised
 
-::: missil.PermissionErrorException
+| Exception | Raised by | Typical cause |
+|---|---|---|
+| `TokenValidationException` | Bearer (token extraction) | Missing, expired, or tampered token |
+| `PermissionDeniedException` | AccessRule (permission check) | Area not in claims, or insufficient level |
 
-## Token Error Exception
+## Raising exceptions manually
 
-::: missil.TokenErrorException
+`PermissionDeniedException` can be raised directly in your own code to block
+access based on custom logic:
+
+```python
+from fastapi import status
+from missil.exceptions import PermissionDeniedException
+
+@app.get("/report", dependencies=[areas.finances.READ])
+def report(user: Annotated[AppClaims, areas.finances.READ]) -> dict:
+    if user.get("is_suspended"):
+        raise PermissionDeniedException(
+            status.HTTP_403_FORBIDDEN,
+            "Account suspended.",
+        )
+    return {"data": "..."}
+```
+
+## Customizing the response format
+
+Register a FastAPI exception handler to override the default response:
+
+```python
+from fastapi import Request
+from fastapi.responses import JSONResponse
+from missil.exceptions import PermissionDeniedException, TokenValidationException
+
+@app.exception_handler(PermissionDeniedException)
+async def permission_denied_handler(request: Request, exc: PermissionDeniedException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"error": "forbidden", "message": exc.detail},
+    )
+
+@app.exception_handler(TokenValidationException)
+async def token_validation_handler(request: Request, exc: TokenValidationException):
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"error": "unauthorized", "message": exc.detail},
+    )
+```
+
+## API Reference
+
+## PermissionDeniedException
+
+::: missil.PermissionDeniedException
+
+## TokenValidationException
+
+::: missil.TokenValidationException

@@ -1,8 +1,10 @@
-"""Missil core access control: AccessRule, Scope, and permission level constants."""
+"""Missil core access control: AccessRule, Area, AreasBase, permission constants."""
 
 from collections.abc import Callable
 from typing import Annotated
 from typing import Any
+from typing import get_type_hints
+import warnings
 
 from fastapi import Depends as FastAPIDependsFunc
 from fastapi import status
@@ -16,7 +18,7 @@ from missil.types import JWTClaims
 
 READ = 0
 WRITE = 1
-DENY = -1  # reserved; raises NotImplementedError if used as an AccessRule level
+ADMIN = 2
 
 
 class AccessRule(FastAPIDependsClass):
@@ -50,12 +52,6 @@ class AccessRule(FastAPIDependsClass):
         use_cache : bool, optional
             FastAPI Depends cache parameter, by default True.
         """
-        if level == DENY:
-            raise NotImplementedError(
-                "DENY rules are not yet implemented. "
-                "Use PermissionDeniedException to block access unconditionally."
-            )
-
         # FastAPIDependsClass became a frozen dataclass in FastAPI 0.115+;
         # object.__setattr__ is the standard way to set fields on frozen instances.
         # Note: "dependency" is intentionally not set here — it's provided by the
@@ -73,8 +69,8 @@ class AccessRule(FastAPIDependsClass):
         def check_user_permissions(
             claims: Annotated[
                 tuple[
-                    JWTClaims,        ## full claims
-                    dict[str, int],   ## user permissions
+                    JWTClaims,  ## full claims
+                    dict[str, int],  ## user permissions
                 ],
                 FastAPIDependsFunc(self.bearer),
             ],
@@ -115,16 +111,16 @@ class AccessRule(FastAPIDependsClass):
         return check_user_permissions
 
 
-class Scope:
+class Area:
     """
     Business area grouping READ and WRITE access rules.
 
-    A Scope instance holds pre-built AccessRule objects for each access level,
+    An Area instance holds pre-built AccessRule objects for each access level,
     ready to be injected as FastAPI endpoint dependencies:
 
     ```python
     bearer = ...
-    finances = Scope("finances", bearer)
+    finances = Area("finances", bearer)
 
 
     @app.get("/finances/read", dependencies=[finances.READ])
@@ -134,7 +130,7 @@ class Scope:
 
     def __init__(self, name: str, bearer: TokenSource) -> None:
         """
-        Create a business area scope.
+        Create a business area.
 
         Parameters
         ----------
@@ -147,22 +143,73 @@ class Scope:
         self.bearer = bearer
         self.READ = AccessRule(self.name, READ, self.bearer)
         self.WRITE = AccessRule(self.name, WRITE, self.bearer)
+        self.ADMIN = AccessRule(self.name, ADMIN, self.bearer)
 
 
-def make_scopes(bearer: TokenSource, *areas: str) -> dict[str, Scope]:
+class AreasBase:
+    """
+    Base class for declaring business areas as typed attributes.
+
+    Subclass it and annotate each field as :class:`Area`. On instantiation,
+    all annotated fields are automatically created and accessible as typed
+    attributes:
+
+    ```python
+    import missil
+
+    bearer = missil.TokenBearer("Authorization", SECRET_KEY, "permissions")
+
+
+    class AppAreas(missil.AreasBase):
+        finances: missil.Area
+        it: missil.Area
+
+
+    areas = AppAreas(bearer)
+
+
+    @app.get("/report", dependencies=[areas.finances.READ])
+    def report(): ...
+    ```
+
+    Annotations typed as anything other than :class:`Area` are silently ignored,
+    so you can freely add non-area class attributes to your subclass.
+    """
+
+    def __init__(self, bearer: TokenSource) -> None:
+        """
+        Instantiate all declared Area fields.
+
+        Parameters
+        ----------
+        bearer : TokenSource
+            JWT token source shared by all areas in this group.
+        """
+        try:
+            hints = get_type_hints(type(self))
+        except Exception:
+            hints = getattr(type(self), "__annotations__", {})
+
+        for name, annotation in hints.items():
+            if annotation is Area:
+                setattr(self, name, Area(name, bearer))
+
+
+def make_areas(bearer: TokenSource, *areas: str) -> dict[str, Area]:
     """
     Create a Missil ruleset from a token source and business area names.
 
-    Returns a dict mapping each area name to a :class:`Scope` with ready-to-use
-    READ and WRITE :class:`AccessRule` dependencies:
+    !!! danger "Deprecated"
+        Use `AreasBase` instead:
 
-    ```python
-    rules = make_scopes(bearer, "finances", "it", "hr")
+        ```python
+        class AppAreas(missil.AreasBase):
+            finances: missil.Area
+            it: missil.Area
 
 
-    @app.get("/finances", dependencies=[rules["finances"].READ])
-    def read_finances(): ...
-    ```
+        areas = AppAreas(bearer)
+        ```
 
     Parameters
     ----------
@@ -173,15 +220,28 @@ def make_scopes(bearer: TokenSource, *areas: str) -> dict[str, Scope]:
 
     Returns
     -------
-    dict[str, Scope]
-        Mapping of area name to Scope.
+    dict[str, Area]
+        Mapping of area name to Area.
     """
-    return {area: Scope(area, bearer) for area in areas}
+    warnings.warn(
+        "make_areas() is deprecated and will be removed in a future version. "
+        "Use AreasBase instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return {area: Area(area, bearer) for area in areas}
 
 
-def make_scope(bearer: TokenSource, area: str) -> Scope:
+def make_area(bearer: TokenSource, area: str) -> Area:
     """
-    Create a single business area Scope.
+    Create a single business area.
+
+    !!! danger "Deprecated"
+        Use `Area` directly instead:
+
+        ```python
+        finances = missil.Area("finances", bearer)
+        ```
 
     Parameters
     ----------
@@ -192,18 +252,26 @@ def make_scope(bearer: TokenSource, area: str) -> Scope:
 
     Returns
     -------
-    Scope
-        Business area scope with READ and WRITE rules.
+    Area
+        Business area with READ and WRITE rules.
     """
-    return Scope(area, bearer)
+    warnings.warn(
+        "make_area() is deprecated and will be removed in a future version. "
+        "Use Area(name, bearer) directly instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return Area(area, bearer)
 
 
 __getattr__ = make_deprecated_getattr(
     {
         "Rule": "AccessRule",
-        "Area": "Scope",
-        "make_rule": "make_scope",
-        "make_rules": "make_scopes",
+        "Scope": "Area",
+        "make_scope": "make_area",
+        "make_scopes": "make_areas",
+        "make_rule": "make_area",
+        "make_rules": "make_areas",
     },
     globals(),
     __name__,
