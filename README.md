@@ -17,72 +17,82 @@
 </a>
 </p>
 
-
-```python
-@app.get("/", dependencies=[rules["finances"].READ])
-def read_root():
-    return {"Hello": "World"}
-```
+---
 
 ## Installation
 
+**Requirements:** Python 3.10+ · FastAPI 0.104.1+ · PyJWT 2.12.1+
+
 ```bash
 pip install missil
-
 ```
 
 ## Why use Missil?
 
-For most applications the use of [scopes]("https://fastapi.tiangolo.com/advanced/security/oauth2-scopes/?h=oauth2") to determine the rights of a user is sufficient enough. Nonetheless, scopes are tied to the state of the user, while 'missil' also take the state of the requested resource into account.
+Permission checks tend to look the same across every protected endpoint: extract the token, verify it, find the area, check the level. Missil moves all of that out of your route functions and into a single declarative line per endpoint — keeping your business logic clean and your access rules explicit and auditable at a glance.
 
-Let's take an scientific paper as an example: depending on the state of the submission process (like "draft", "submitted", "peer review" or "published") different users should have different permissions on viewing and editing. This could be acomplished with custom code in the path definition functions, but Missil offers a very legible and to-the-point to define these constraints.
+Because permissions are stored as numeric levels per business area, a single token can express fine-grained access across multiple areas of your application without requiring separate tokens or custom middleware.
 
-## Quick usage
+## Quick example
 
 ```python
-
 import missil
-
-from fastapi import FastAPI
-from fastapi import Response
+from fastapi import FastAPI, Response
 
 app = FastAPI()
+SECRET_KEY = "..."
 
-TOKEN_KEY = "Authorization"
-SECRET_KEY = "2ef9451be5d149ceaf5be306b5aa03b41a0331218926e12329c5eeba60ed5cf0"
+# 1. Declare a bearer — reads token from cookie or Authorization header
+bearer = missil.TokenBearer("Authorization", SECRET_KEY, permissions_key="permissions")
 
-bearer = missil.FlexibleTokenBearer(TOKEN_KEY, SECRET_KEY)
-rules = missil.make_rules(bearer, "finances", "it", "other")
+# 2. Declare business areas as typed attributes
+class AppAreas(missil.AreasBase):
+    finances: missil.Area
+    it: missil.Area
 
-@app.get("/", dependencies=[rules["finances"].READ])
-def read_root():
-    return {"Hello": "World"}
+areas = AppAreas(bearer)
 
+# 3. Protect endpoints — one dependency, no boilerplate
+@app.get("/finances/report", dependencies=[areas.finances.READ])
+def finances_report(): ...
 
-@app.get("/set-cookies")
-def set_cookies(response: Response) -> None:
-    """Just for example purposes."""
-    sample_user_privileges = {
-        "finances": missil.READ,
-        "it": missil.WRITE,
+@app.get("/finances/edit", dependencies=[areas.finances.WRITE])
+def finances_edit(): ...
+
+@app.get("/it/admin", dependencies=[areas.it.ADMIN])
+def it_admin(): ...
+
+# 4. Issue a token at login
+@app.post("/login")
+def login(response: Response):
+    claims = {
+        "sub": "user123",
+        "permissions": {"finances": missil.WRITE, "it": missil.READ},
     }
-
-    token_expiration_in_hours = 8
-    token = missil.encode_jwt_token(claims, SECRET_KEY, token_expiration_in_hours)
-
-    response.set_cookie(
-        key=TOKEN_KEY,
-        value=f"Bearer {token}",
-        httponly=True,
-        max_age=1800,
-        expires=1800,
-    )
+    token = missil.encode_jwt_token(claims, SECRET_KEY, expiration_hours=8)
+    response.set_cookie("Authorization", f"Bearer {token}", httponly=True)
+    return {"msg": "logged in"}
 ```
 
-## Disclaimer
+## Permission hierarchy
 
-Scopes did not meet my needs and other permission systems were too complex, so
-I designed this code for me and my team needs, but feel free to use it if you like.
+| Level | Constant | Satisfies |
+|---|---|---|
+| 0 | `READ` | READ |
+| 1 | `WRITE` | READ, WRITE |
+| 2 | `ADMIN` | READ, WRITE, ADMIN |
+
+Higher levels automatically satisfy lower requirements — a user with `ADMIN` access can reach `READ` and `WRITE` protected endpoints without extra entries.
+
+## Bearers
+
+Choose the bearer that matches how your client sends the token:
+
+| Bearer | Token source |
+|---|---|
+| `TokenBearer` | Cookie → falls back to `Authorization` header |
+| `CookieTokenBearer` | Cookie only |
+| `HeaderTokenBearer` | `Authorization` header only |
 
 ## License
 

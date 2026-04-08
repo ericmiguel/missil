@@ -10,22 +10,18 @@
 </p>
 <p align="center">
 <a href="https://pypi.org/project/missil" target="_blank">
-    <img src="https://img.shields.io/pypi/v/fastapi?color=%2334D058&label=pypi%20package" alt="Package version">
+    <img src="https://img.shields.io/pypi/v/missil?color=%2334D058&label=pypi%20package" alt="Package version">
 </a>
 <a href="https://pypi.org/project/missil" target="_blank">
     <img src="https://img.shields.io/pypi/pyversions/missil.svg?color=%2334D058" alt="Supported Python versions">
 </a>
 </p>
 
-
-
-```python
-@app.get("/", dependencies=[rules["finances"].READ])
-def read_root():
-    return {"Hello": "World"}
-```
+---
 
 ## Installation
+
+**Requirements:** Python 3.10+ · FastAPI 0.104.1+ · PyJWT 2.12.1+
 
 <!-- termynal -->
 
@@ -37,63 +33,158 @@ Installed
 
 ## Why use Missil?
 
-For most applications the use of [scopes]("https://fastapi.tiangolo.com/advanced/security/oauth2-scopes/?h=oauth2") to determine the rights of a user is sufficient enough. Nonetheless, scopes are tied to the state of the user, while 'missil' also take the state of the requested resource into account.
+Permission checks tend to look the same across every protected endpoint: extract the token, verify it, find the area, check the level. Missil moves all of that out of your route functions and into a single declarative line per endpoint — keeping your business logic clean and your access rules explicit and auditable at a glance.
 
-Let's take an scientific paper as an example: depending on the state of the submission process (like "draft", "submitted", "peer review" or "published") different users should have different permissions on viewing and editing. This could be acomplished with custom code in the path definition functions, but Missil offers a very legible and to-the-point to define these constraints.
+It also goes beyond simple scope checks: because permissions are stored as numeric levels per business area, a single token can express fine-grained access across multiple areas of your application without requiring separate tokens or custom middleware.
 
-
-## Quick usage
-
+## End-to-end example
 
 ```python
-
 import missil
-
-from fastapi import FastAPI
-from fastapi import Response
-
-from datetime import datetime
-from datetime import timezone
-from datetime import timedelta
+from fastapi import FastAPI, Response
 
 app = FastAPI()
+SECRET_KEY = "..."
 
-TOKEN_KEY = "Authorization"
-SECRET_KEY = "2ef9451be5d149ceaf5be306b5aa03b41a0331218926e12329c5eeba60ed5cf0"
+# 1. Declare a bearer — reads token from cookie or Authorization header
+bearer = missil.TokenBearer("Authorization", SECRET_KEY, permissions_key="permissions")
 
-bearer = missil.FlexibleTokenBearer(TOKEN_KEY, SECRET_KEY)
-rules = missil.make_rules(bearer, "finances", "it", "other")
+# 2. Declare business areas as typed attributes
+class AppAreas(missil.AreasBase):
+    finances: missil.Area
+    it: missil.Area
 
-@app.get("/", dependencies=[rules["finances"].READ])
-def read_root():
-    return {"Hello": "World"}
+areas = AppAreas(bearer)
 
+# 3. Protect endpoints — one dependency, no boilerplate
+@app.get("/finances/report", dependencies=[areas.finances.READ])
+def finances_report(): ...
 
-@app.get("/set-cookies")
-def set_cookies(response: Response) -> None:
-    """Just for example purposes."""
-    sample_user_privileges = {
-        "finances": missil.READ,
-        "it": missil.WRITE,
-    }
+@app.get("/finances/edit", dependencies=[areas.finances.WRITE])
+def finances_edit(): ...
 
-    token_expiration = datetime.now(timezone.utc) + timedelta(hours=8)
-    token = missil.encode_jwt_token(sample_user_privileges, SECRET_KEY, token_expiration)
+@app.get("/it/admin", dependencies=[areas.it.ADMIN])
+def it_admin(): ...
 
-    response.set_cookie(
-        key=TOKEN_KEY,
-        value=f"Bearer {token}",
-        httponly=True,
-        max_age=1800,
-        expires=1800,
-    )
+# 4. Issue the token (e.g. at login)
+@app.post("/login")
+def login(response: Response):
+    claims = {"sub": "user123", "permissions": {"finances": missil.WRITE, "it": missil.READ}}
+    token = missil.encode_jwt_token(claims, SECRET_KEY, expiration_hours=8)
+    response.set_cookie("Authorization", f"Bearer {token}", httponly=True)
+    return {"msg": "logged in"}
 ```
 
+## How it works
 
-## Disclaimer 
+Missil works in three steps:
 
-Scopes did not meet my needs and other permission systems were too complex, so
-I designed this code for my and my team needs, but feel free to use it if you like.
+**1. Issue a JWT token** containing a permissions dict under a key of your choice:
+
+```python
+claims = {
+    "sub": "user123",
+    "permissions": {       # key name must match the bearer's permissions_key
+        "finances": 0,     # READ
+        "it": 2,           # ADMIN
+    },
+}
+token = missil.encode_jwt_token(claims, SECRET_KEY, expiration_hours=8)
+```
+
+**2. Declare a bearer** that knows where to find the token and which key holds permissions:
+
+```python
+bearer = missil.TokenBearer("Authorization", SECRET_KEY, permissions_key="permissions")
+```
+
+**3. Declare areas and protect endpoints:**
+
+```python
+class AppAreas(missil.AreasBase):
+    finances: missil.Area
+    it: missil.Area
+
+areas = AppAreas(bearer)
+
+@app.get("/report", dependencies=[areas.finances.READ])   # level 0+
+def report(): ...
+
+@app.get("/dashboard", dependencies=[areas.it.ADMIN])     # level 2 only
+def dashboard(): ...
+```
+
+On every request, Missil extracts the token, decodes it, looks up the area in the
+permissions dict and checks that the user's level satisfies the required level.
+If not, it raises HTTP 403.
+
+### JWT payload structure
+
+Missil expects the JWT payload to include a dict under the key you passed as
+`permissions_key`. Each entry maps an area name to a numeric access level:
+
+```json
+{
+  "sub": "user123",
+  "exp": 1234567890,
+  "permissions": {
+    "finances": 0,
+    "it": 2,
+    "hr": 1
+  }
+}
+```
+
+!!! warning "Key name must match"
+    The key name in the JWT payload (`"permissions"` above) must exactly match
+    the `permissions_key` argument passed to your bearer constructor.
+
+### Permission Hierarchy
+
+| Level | Constant | Satisfies |
+|---|---|---|
+| 0 | `READ` | READ |
+| 1 | `WRITE` | READ, WRITE |
+| 2 | `ADMIN` | READ, WRITE, ADMIN |
+
+Higher permission levels automatically satisfy lower requirements — a user with
+`ADMIN` access can reach `READ` and `WRITE` protected endpoints without needing
+separate permission entries.
+
+## Sending the token
+
+Depending on which bearer you chose, the client sends the token differently:
+
+=== "Cookie (TokenBearer / CookieTokenBearer)"
+
+    Issue the token as a cookie at login — the bearer reads it automatically on every subsequent request:
+
+    ```python
+    @app.post("/login")
+    def login(response: Response):
+        token = missil.encode_jwt_token(claims, SECRET_KEY, expiration_hours=8)
+        response.set_cookie(
+            key="Authorization",   # must match the bearer's token_key
+            value=f"Bearer {token}",
+            httponly=True,
+        )
+        return {"msg": "logged in"}
+    ```
+
+    The client needs no extra code — the browser sends the cookie automatically.
+
+=== "Header (TokenBearer / HeaderTokenBearer)"
+
+    ```http
+    GET /finances/report HTTP/1.1
+    Authorization: Bearer <your-token>
+    ```
+
+    ```python
+    import httpx
+    response = httpx.get("http://localhost:8000/finances/report",
+                         headers={"Authorization": f"Bearer {token}"})
+    ```
 
 ## License
 

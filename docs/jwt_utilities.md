@@ -1,47 +1,61 @@
-# JWT Utitilies
+# JWT Utilities
 
-Missil uses the excellent [Python-jose](https://github.com/mpdavis/python-jose) as backend to offer some JWT conveniences.
-
+Missil uses [python-jose](https://github.com/mpdavis/python-jose) as backend to
+offer JWT conveniences. These utilities are thin wrappers — you can use any JWT
+library you prefer for token issuance as long as the payload structure matches
+what your bearer expects.
 
 ## Encode JWT Token
+
+Creates a signed JWT token from a claims dict.
 
 ### Usage Example
 
 ```python
-from datetime import datetime
-from missil import encode_jwt_token
+import missil
 
 SECRET_KEY = "averysecretkey"
 
-base_date = datetime(2094, 2, 26)
-claims = {"name": "John Doe", "userPrivileges": {"finances": 1}}
-token = encode_jwt_token(claims, SECRET_KEY, 8, base=base_date)
+claims = {
+    "sub": "user123",
+    "permissions": {       # key must match the bearer's permissions_key
+        "finances": missil.READ,
+        "it": missil.ADMIN,
+    },
+}
 
+token = missil.encode_jwt_token(claims, SECRET_KEY, expiration_hours=8)
 print(token)
 ```
 
 ### API Reference
 
-#### ::: missil.encode_jwt_token
+::: missil.encode_jwt_token
 
 ---
 
-
 ## Decode JWT Token
+
+Decodes and verifies a signed JWT token.
 
 ### Usage Example
 
 ```python
-from missil import decode_jwt_token
+import missil
 
-TOKEN = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiSm9obiBEb2UiLCJ1c2VyUHJpdmlsZWdlcyI6eyJmaW5hbmNlcyI6MX0sImV4cCI6MzkxODY3MjAwMH0.BWkskBJZj68mLaxqgdO0occL_FY8RSdEnqNSC6Swxh0"
 SECRET_KEY = "averysecretkey"
-decoded_token = decode_jwt_token(TOKEN, SECRET_KEY)
 
-print(decoded_token)  # {'name': 'John Doe', 'userPrivileges': {'finances': 1}, 'exp': 3918672000}
+token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+decoded = missil.decode_jwt_token(token, SECRET_KEY)
 
+print(decoded)
+# {"sub": "user123", "permissions": {"finances": 0, "it": 2}, "exp": ...}
 ```
+
+!!! note
+    `decode_jwt_token` raises `TokenValidationException` if the token is
+    expired, has an invalid signature, or cannot be decoded.
 
 ### API Reference
 
-#### ::: missil.decode_jwt_token
+::: missil.decode_jwt_token
