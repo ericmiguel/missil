@@ -1,6 +1,6 @@
 """Missil type definitions for JWT claims."""
 
-from typing import TypedDict
+from typing_extensions import TypedDict
 
 
 class JWTClaims(TypedDict, total=False):
