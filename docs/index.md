@@ -151,6 +151,20 @@ Higher permission levels automatically satisfy lower requirements — a user wit
 `ADMIN` access can reach `READ` and `WRITE` protected endpoints without needing
 separate permission entries.
 
+### Grouping rules with Role
+
+When multiple areas must be verified together, use `Role` to define the combination
+once and reuse it across endpoints:
+
+```python
+analyst = missil.Role(areas.finances.READ, areas.it.READ)
+
+@app.get("/dashboard", dependencies=[analyst])
+def dashboard(): ...
+```
+
+See the [Rules reference](rules.md#role) for full details.
+
 ## Sending the token
 
 Depending on which bearer you chose, the client sends the token differently:

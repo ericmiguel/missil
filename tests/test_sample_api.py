@@ -74,3 +74,14 @@ def test_get_current_user(api_url, test_app, bearer_token, decoded_token):
     response = test_app.get(api_url, headers={"Authorization": bearer_token})
     assert response.status_code == 200
     assert response.json() == decoded_token
+
+
+@ignore_warnings
+def test_role_access(test_app, bearer_token):
+    """Analyst Role (finances.READ + it.READ) passes with ADMIN/WRITE token."""
+    response = test_app.get(
+        "/analyst-dashboard",
+        headers={"Authorization": bearer_token},
+    )
+    assert response.status_code == 200
+    assert response.json() == {"msg": "analyst access granted!"}

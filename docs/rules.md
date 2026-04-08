@@ -52,6 +52,51 @@ so you can freely add non-area class attributes to your subclass.
 
 ::: missil.AccessRule
 
+## Role
+
+Group multiple `AccessRule`s into a single dependency. The endpoint is accessible
+only when **every rule** in the role passes — if any fails, FastAPI returns HTTP 403.
+
+Use a `Role` to avoid repeating the same combination of rules across several endpoints:
+
+```python
+import missil
+from fastapi import FastAPI
+
+app = FastAPI()
+SECRET_KEY = "..."
+
+bearer = missil.TokenBearer("Authorization", SECRET_KEY, permissions_key="permissions")
+
+
+class AppAreas(missil.AreasBase):
+    finances: missil.Area
+    it: missil.Area
+
+
+areas = AppAreas(bearer)
+
+# Define a named role once
+analyst = missil.Role(areas.finances.READ, areas.it.READ)
+
+# Reuse across many endpoints
+@app.get("/dashboard", dependencies=[analyst])
+def dashboard(): ...
+
+@app.get("/report", dependencies=[analyst])
+def report(): ...
+```
+
+A `Role` is a standard FastAPI `Depends` — it can be freely combined with other
+dependencies on the same endpoint:
+
+```python
+@app.get("/report", dependencies=[analyst, other_dep])
+def report(): ...
+```
+
+::: missil.Role
+
 ---
 
 ## Migrating from make_areas / make_area

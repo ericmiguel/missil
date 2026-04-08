@@ -5,6 +5,7 @@ from missil import make_areas
 from missil.rules import AccessRule
 from missil.rules import Area
 from missil.rules import AreasBase
+from missil.rules import Role
 
 
 class TestAreasBase:
@@ -81,3 +82,18 @@ def test_make_scopes_multiple(bearer_token):
     assert isinstance(test_scopes["test_2"].READ, AccessRule)
     assert isinstance(test_scopes["test_1"].WRITE, AccessRule)
     assert isinstance(test_scopes["test_2"].WRITE, AccessRule)
+
+
+def test_role_creation(bearer_token):
+    """Role wraps multiple AccessRules into a single dependency."""
+    area = Area("finances", bearer_token)
+    role = Role(area.READ, area.WRITE)
+    assert len(role.rules) == 2
+
+
+def test_role_is_fastapi_depends(bearer_token):
+    """Role is a FastAPI Depends instance and can be used in dependencies=[]."""
+    area = Area("finances", bearer_token)
+    role = Role(area.READ)
+    assert hasattr(role, "dependency")
+    assert callable(role.dependency)

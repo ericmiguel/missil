@@ -30,12 +30,16 @@ bearer = missil.TokenBearer(TOKEN_KEY, SECRET_KEY, "userPermissions")
 class AppAreas(missil.AreasBase):
     """Application business areas."""
 
+    """Application business areas."""
+
     finances: missil.Area
     it: missil.Area
     other: missil.Area
 
 
 areas = AppAreas(bearer)
+
+analyst = missil.Role(areas.finances.READ, areas.it.READ)
 
 finances_read_router = ProtectedRouter(rules=[areas.finances.READ])
 finances_write_router = ProtectedRouter(rules=[areas.finances.WRITE])
@@ -90,6 +94,12 @@ def finances_write() -> dict[str, str]:
 def finances_admin() -> dict[str, str]:
     """Require admin permission on finances."""
     return {"msg": "you have admin permission on finances!"}
+
+
+@app.get("/analyst-dashboard", dependencies=[analyst])
+def analyst_dashboard() -> dict[str, str]:
+    """Require finances READ and it READ via Role."""
+    return {"msg": "analyst access granted!"}
 
 
 @app.get("/user-profile", dependencies=[areas.it.READ])
