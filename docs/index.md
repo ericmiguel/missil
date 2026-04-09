@@ -25,7 +25,7 @@
 
 <!-- termynal -->
 
-```
+```console
 > pip install missil
 ---> 100%
 Installed

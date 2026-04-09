@@ -1,0 +1,16 @@
+{
+  "plugins": {
+    "md013": {
+      "enabled": false
+    },
+    "md033": {
+      "enabled": false
+    },
+    "md041": {
+      "enabled": false
+    },
+    "md046": {
+      "enabled": false
+    }
+  }
+}
