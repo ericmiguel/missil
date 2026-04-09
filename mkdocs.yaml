@@ -50,6 +50,7 @@ extra:
 nav:
     - Introduction: index.md
     - Guide:
+          - guide/index.md
           - Access Control: guide/access-control.md
           - Bearers: guide/bearers.md
           - Routers: guide/routers.md
@@ -57,6 +58,7 @@ nav:
           - Exceptions: guide/exceptions.md
           - Migration: guide/migration.md
     - API Reference:
+          - reference/index.md
           - Rules: reference/rules.md
           - Bearers: reference/bearers.md
           - Routers: reference/routers.md
