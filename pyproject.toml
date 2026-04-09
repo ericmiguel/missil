@@ -133,8 +133,8 @@ lines-between-types = 0
 [tool.pdm.scripts]
 format = { shell = "ruff format" }
 check = { shell = "ruff check" }
-check-md = { shell = "pymarkdown --config .pymarkdown scan docs README.md" }
-check-md-fix = { shell = "pymarkdown --config .pymarkdown fix docs README.md" }
+check-md = { shell = "pymarkdown --disable-rules MD013,MD033,MD041,MD046 scan docs README.md" }
+check-md-fix = { shell = "pymarkdown --disable-rules MD013,MD033,MD041,MD046 fix docs README.md" }
 check-dry-run = { shell = "ruff check --no-fix" }
 check-dead = { shell = "vulture missil --min-confidence=90" }
 check-dead-lax = { shell = "vulture missil --min-confidence=80" }
